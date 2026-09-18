@@ -118,7 +118,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
 
 class DoctorDetailsScreen extends StatefulWidget {
   const DoctorDetailsScreen({super.key, required this.doctor});
-  const DoctorDetailsScreen.preview({
+  DoctorDetailsScreen.preview({
     super.key,
     required String initials,
     required String name,

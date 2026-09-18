@@ -21,8 +21,80 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final patients = doctorPatients.where((patient) => patient.name.contains(_query.trim()) || patient.status.contains(_query.trim())).toList();
-    return Scaffold(appBar: AppBar(title: const Text('المرضى')), body: SafeArea(child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [SliverPadding(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md), sliver: SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ابحث في قائمة مرضاك ومعلومات المتابعة', style: Theme.of(context).textTheme.bodyLarge), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'ابحث عن مريض', prefixIcon: Icons.search_rounded, controller: _searchController, onChanged: (value) => setState(() => _query = value), textInputAction: TextInputAction.search), const SizedBox(height: AppSpacing.lg), Text('${patients.length} مرضى', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700))])), if (patients.isEmpty) const SliverFillRemaining(hasScrollBody: false, child: EmptyState(title: 'لا توجد نتائج', message: 'جرّب البحث باسم آخر.', icon: Icons.person_search_outlined)) else SliverPadding(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl), sliver: SliverList(delegate: SliverChildBuilderDelegate((context, index) { final patient = patients[index]; return Padding(padding: const EdgeInsets.only(bottom: AppSpacing.sm), child: _PatientCard(patient: patient, onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorPatientDetailsScreen(patient: patient))))); }, childCount: patients.length))])));
+    final patients = doctorPatients
+        .where((patient) => patient.name.contains(_query.trim()) || patient.status.contains(_query.trim()))
+        .toList();
+    final slivers = <Widget>[
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('ابحث في قائمة مرضاك ومعلومات المتابعة', style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: AppSpacing.md),
+              CustomTextField(
+                label: 'ابحث عن مريض',
+                prefixIcon: Icons.search_rounded,
+                controller: _searchController,
+                onChanged: (value) => setState(() => _query = value),
+                textInputAction: TextInputAction.search,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text('${patients.length} مرضى', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ),
+      ),
+    ];
+
+    if (patients.isEmpty) {
+      slivers.add(
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            title: 'لا توجد نتائج',
+            message: 'جرّب البحث باسم آخر.',
+            icon: Icons.person_search_outlined,
+          ),
+        ),
+      );
+    } else {
+      slivers.add(
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final patient = patients[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: _PatientCard(
+                    patient: patient,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DoctorPatientDetailsScreen(patient: patient),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              childCount: patients.length,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('المرضى')),
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: slivers,
+        ),
+      ),
+    );
   }
 }
 
