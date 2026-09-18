@@ -151,19 +151,92 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     final status = _statusDetails(_status);
     return Scaffold(
       appBar: AppBar(title: const Text('تفاصيل الموعد'), leading: const BackButton()),
-      body: SafeArea(child: SingleChildScrollView(physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        AppCard(child: Row(children: [AppAvatar(initials: appointment.doctorInitials, size: 66, backgroundColor: appointment.avatarColor), const SizedBox(width: AppSpacing.md), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(appointment.doctorName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)), const SizedBox(height: 4), Text(appointment.specialty, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.w600)), const SizedBox(height: AppSpacing.sm), TextButton(onPressed: () => _openDoctor(appointment), child: const Text('عرض الملف'))]))])),
-        const SizedBox(height: AppSpacing.xl),
-        Text('العيادة', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        AppCard(child: Row(children: [Container(width: 48, height: 48, decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.local_hospital_outlined, color: AppColors.primary, size: 25)), const SizedBox(width: AppSpacing.sm), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(appointment.clinicName, style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: 3), Text(appointment.location, style: Theme.of(context).textTheme.bodyMedium)])), IconButton(onPressed: () => _openClinic(appointment), icon: const Icon(Icons.chevron_left_rounded), color: AppColors.primary, tooltip: 'عرض العيادة')])),
-        const SizedBox(height: AppSpacing.xl),
-        Text('معلومات الموعد', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        AppCard(child: Column(children: [_DetailRow(label: 'التاريخ', value: appointment.date, icon: Icons.calendar_month_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'الوقت', value: appointment.time, icon: Icons.schedule_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'نوع الموعد', value: appointment.type, icon: Icons.medical_services_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'الحالة', value: status.label, icon: Icons.info_outline, valueColor: status.color)])),
-        if (appointment.notes != null) ...[const SizedBox(height: AppSpacing.xl), Text('ملاحظات الموعد', style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: AppSpacing.sm), AppCard(child: Text(appointment.notes!, style: Theme.of(context).textTheme.bodyLarge))],
-        if (_status == AppointmentStatus.upcoming) ...[const SizedBox(height: AppSpacing.xl), SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل الموعد', icon: Icons.edit_calendar_outlined, onPressed: null)), const SizedBox(height: AppSpacing.sm), SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _confirmCancellation, child: const Text('إلغاء الموعد')))],
-      ])),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppCard(
+                child: Row(
+                  children: [
+                    AppAvatar(initials: appointment.doctorInitials, size: 66, backgroundColor: appointment.avatarColor),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(appointment.doctorName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)),
+                          const SizedBox(height: 4),
+                          Text(appointment.specialty, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextButton(onPressed: () => _openDoctor(appointment), child: const Text('عرض الملف')),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text('العيادة', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(14)),
+                      child: const Icon(Icons.local_hospital_outlined, color: AppColors.primary, size: 25),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(appointment.clinicName, style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 3),
+                          Text(appointment.location, style: Theme.of(context).textTheme.bodyMedium),
+                        ],
+                      ),
+                    ),
+                    IconButton(onPressed: () => _openClinic(appointment), icon: const Icon(Icons.chevron_left_rounded), color: AppColors.primary, tooltip: 'عرض العيادة'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text('معلومات الموعد', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                child: Column(
+                  children: [
+                    _DetailRow(label: 'التاريخ', value: appointment.date, icon: Icons.calendar_month_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'الوقت', value: appointment.time, icon: Icons.schedule_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'نوع الموعد', value: appointment.type, icon: Icons.medical_services_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'الحالة', value: status.label, icon: Icons.info_outline, valueColor: status.color),
+                  ],
+                ),
+              ),
+              if (appointment.notes != null) ...[
+                const SizedBox(height: AppSpacing.xl),
+                Text('ملاحظات الموعد', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                AppCard(child: Text(appointment.notes!, style: Theme.of(context).textTheme.bodyLarge)),
+              ],
+              if (_status == AppointmentStatus.upcoming) ...[
+                const SizedBox(height: AppSpacing.xl),
+                SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل الموعد', icon: Icons.edit_calendar_outlined, onPressed: null)),
+                const SizedBox(height: AppSpacing.sm),
+                SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _confirmCancellation, child: const Text('إلغاء الموعد'))),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 

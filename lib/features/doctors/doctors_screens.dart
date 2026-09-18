@@ -217,7 +217,26 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               const SizedBox(height: AppSpacing.md),
               Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: [for (final time in _times) _TimeChip(label: time, selected: time == _selectedTime, onTap: () => setState(() => _selectedTime = time))]),
               const SizedBox(height: AppSpacing.xl),
-              SizedBox(width: double.infinity, child: PrimaryButton(label: 'حجز موعد', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentBookingScreen(bookingData: AppointmentBookingData(doctorName: widget.doctor.name, doctorInitials: widget.doctor.initials, specialty: widget.doctor.specialty, clinicName: widget.doctor.clinic, location: widget.doctor.location, avatarColor: widget.doctor.color))))),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'حجز موعد',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => AppointmentBookingScreen(
+                        bookingData: AppointmentBookingData(
+                          doctorName: widget.doctor.name,
+                          doctorInitials: widget.doctor.initials,
+                          specialty: widget.doctor.specialty,
+                          clinicName: widget.doctor.clinic,
+                          location: widget.doctor.location,
+                          avatarColor: widget.doctor.color,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ]),
           ),
         ),

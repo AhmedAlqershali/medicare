@@ -403,7 +403,7 @@ class _AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: showBack ? const AppBar(leading: BackButton()) : null,
+        appBar: showBack ? AppBar(leading: const BackButton()) : null,
         body: SafeArea(
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

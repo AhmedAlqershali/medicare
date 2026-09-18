@@ -157,7 +157,17 @@ class AppointmentConfirmationScreen extends StatelessWidget {
                 _ConfirmationRow(icon: Icons.schedule_outlined, title: 'الوقت', value: time),
               ])),
               const SizedBox(height: AppSpacing.xl),
-              SizedBox(width: double.infinity, child: PrimaryButton(label: 'عرض مواعيدي', icon: Icons.calendar_month_outlined, onPressed: () => Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const AppointmentsScreen()), (route) => route.isFirst)),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'عرض مواعيدي',
+                  icon: Icons.calendar_month_outlined,
+                  onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute<void>(builder: (_) => const AppointmentsScreen()),
+                    (route) => route.isFirst,
+                  ),
+                ),
+              ),
               const SizedBox(height: AppSpacing.sm),
               SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst), child: const Text('العودة للرئيسية'))),
             ]),
@@ -224,7 +234,24 @@ class _SummaryLine extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: AppSpacing.sm), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [SizedBox(width: 78, child: Text(label, style: Theme.of(context).textTheme.bodyMedium)), Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700)))]);
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 78,
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _ConfirmationRow extends StatelessWidget {

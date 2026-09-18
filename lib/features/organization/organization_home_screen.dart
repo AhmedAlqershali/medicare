@@ -114,7 +114,32 @@ class _SummaryCard extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) => SizedBox(width: width, child: AppCard(padding: const EdgeInsets.all(AppSpacing.md), child: Row(children: [Container(width: 38, height: 38, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: AppColors.primaryDark, size: 19)), const SizedBox(width: AppSpacing.sm), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20)), Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium)])]))));
+  Widget build(BuildContext context) => SizedBox(
+        width: width,
+        child: AppCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: AppColors.primaryDark, size: 19),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20)),
+                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 class _ClinicPreviewCard extends StatelessWidget {
