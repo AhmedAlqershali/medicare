@@ -49,7 +49,7 @@ class PrimaryButton extends StatelessWidget {
 }
 
 class CustomTextField extends StatelessWidget {
-  const CustomTextField({super.key, required this.label, this.hintText, this.prefixIcon, this.controller, this.obscureText = false, this.keyboardType, this.onChanged, this.errorText, this.textInputAction, this.autofillHints});
+  const CustomTextField({super.key, required this.label, this.hintText, this.prefixIcon, this.controller, this.obscureText = false, this.keyboardType, this.onChanged, this.errorText, this.validator, this.textInputAction, this.autofillHints});
   final String label;
   final String? hintText;
   final IconData? prefixIcon;
@@ -58,6 +58,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final String? errorText;
+  final FormFieldValidator<String>? validator;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
 
@@ -71,13 +72,14 @@ class CustomTextField extends StatelessWidget {
         keyboardType: keyboardType,
         onChanged: onChanged,
         errorText: errorText,
+        validator: validator,
         textInputAction: textInputAction,
         autofillHints: autofillHints,
       );
 }
 
 class _TextField extends StatefulWidget {
-  const _TextField({required this.label, this.hintText, this.prefixIcon, this.controller, required this.obscureText, this.keyboardType, this.onChanged, this.errorText, this.textInputAction, this.autofillHints});
+  const _TextField({required this.label, this.hintText, this.prefixIcon, this.controller, required this.obscureText, this.keyboardType, this.onChanged, this.errorText, this.validator, this.textInputAction, this.autofillHints});
   final String label;
   final String? hintText;
   final IconData? prefixIcon;
@@ -86,6 +88,7 @@ class _TextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final String? errorText;
+  final FormFieldValidator<String>? validator;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
 
@@ -103,13 +106,14 @@ class _TextFieldState extends State<_TextField> {
   }
 
   @override
-  Widget build(BuildContext context) => TextField(
+  Widget build(BuildContext context) => TextFormField(
         controller: widget.controller,
         obscureText: _isObscured,
         keyboardType: widget.keyboardType,
         textInputAction: widget.textInputAction,
         autofillHints: widget.autofillHints,
         onChanged: widget.onChanged,
+        validator: widget.validator,
         decoration: InputDecoration(
           labelText: widget.label,
           hintText: widget.hintText,

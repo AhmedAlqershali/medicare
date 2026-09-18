@@ -156,10 +156,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _contactError;
-  String? _passwordError;
   bool _isLoading = false;
 
   @override
@@ -171,11 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _contactError = _contactController.text.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null;
-      _passwordError = _passwordController.text.isEmpty ? 'أدخل كلمة المرور' : null;
-    });
-    if (_contactError != null || _passwordError != null) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _isLoading = true);
     await Future<void>.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
@@ -189,6 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) => _AuthScaffold(
+        formKey: _formKey,
         title: 'مرحباً بعودتك',
         subtitle: 'سجّل الدخول لمتابعة رعايتك الصحية',
         children: [
@@ -196,11 +192,10 @@ class _LoginScreenState extends State<LoginScreen> {
             label: 'رقم الجوال أو البريد الإلكتروني',
             prefixIcon: Icons.person_outline_rounded,
             controller: _contactController,
-            errorText: _contactError,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.username, AutofillHints.email],
-            onChanged: (_) => setState(() => _contactError = null),
+            validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
           ),
           const SizedBox(height: AppSpacing.md),
           CustomTextField(
@@ -208,10 +203,9 @@ class _LoginScreenState extends State<LoginScreen> {
             prefixIcon: Icons.lock_outline_rounded,
             controller: _passwordController,
             obscureText: true,
-            errorText: _passwordError,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.password],
-            onChanged: (_) => setState(() => _passwordError = null),
+            validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
           ),
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -395,10 +389,11 @@ class DoctorPlaceholderScreen extends StatelessWidget {
 }
 
 class _AuthScaffold extends StatelessWidget {
-  const _AuthScaffold({required this.title, required this.subtitle, required this.children, this.showBack = false});
+  const _AuthScaffold({required this.title, required this.subtitle, required this.children, this.formKey, this.showBack = false});
   final String title;
   final String subtitle;
   final List<Widget> children;
+  final GlobalKey<FormState>? formKey;
   final bool showBack;
 
   @override
@@ -408,14 +403,14 @@ class _AuthScaffold extends StatelessWidget {
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               const _BrandMark(size: 50),
               const SizedBox(height: AppSpacing.lg),
               Text(title, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: AppSpacing.xs),
               Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: AppSpacing.xl),
-              ...children,
+              if (formKey == null) ...children else Form(key: formKey, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: children)),
             ]),
           ),
         ),
