@@ -11,100 +11,167 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _contactController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  @override
-  void dispose() {
-    _contactController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
   Future<void> _login() async {
-    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _isLoading = true);
+
     await Future<void>.delayed(const Duration(milliseconds: 700));
+
     if (!mounted) return;
+
     setState(() => _isLoading = false);
-    _openUserType();
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => const UserTypeScreen(),
+      ),
+    );
   }
 
-  void _openUserType() => Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => const UserTypeScreen()));
-
-  void _showForgotPasswordMessage() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم توفير استعادة كلمة المرور قريباً')));
+  void _showForgotPasswordMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('سيتم توفير استعادة كلمة المرور قريباً'),
+      ),
+    );
+  }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Colors.yellow,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.add, color: Colors.white),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Medicare'),
-                      const SizedBox(height: 16),
-                      const Text('مرحبا محمود'),
-                      const SizedBox(height: 8),
-                      const Text('مرحباً بعودتك'),
-                      const SizedBox(height: 8),
-                      const Text('سجل الدخول لمتابعة رعايتك الصحية'),
-                      const SizedBox(height: 24),
-                      const TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Test field',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const TextField(
-                        decoration: const InputDecoration(
-                          hintText: 'Test field',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: TextButton(
-                          onPressed: _showForgotPasswordMessage,
-                          child: const Text('نسيت كلمة المرور؟'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        onPressed: _isLoading ? null : _login,
-                        child: _isLoading ? const CircularProgressIndicator() : const Text('تسجيل الدخول'),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('ليس لديك حساب؟'),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen())),
-                            child: const Text('إنشاء حساب'),
-                          ),
-                        ],
-                      ),
-                    ],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.yellow,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+
+              const Center(
+                child: Text(
+                  'LOGIN TEST',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            ),
+
+              const SizedBox(height: 30),
+
+              const TextField(
+                decoration: InputDecoration(
+                  hintText: 'Test field 1',
+                  filled: false,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  isDense: true,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              const TextField(
+                decoration: InputDecoration(
+                  hintText: 'Test field 2',
+                  filled: false,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  isDense: true,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton(
+                  onPressed: _showForgotPasswordMessage,
+                  child: const Text('نسيت كلمة المرور؟'),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              FilledButton(
+                onPressed: _isLoading ? null : _login,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('تسجيل الدخول'),
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('ليس لديك حساب؟'),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const RegisterScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('إنشاء حساب'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }
