@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../clinics/clinics_screens.dart';
+import '../clinics/data/mock_clinics.dart';
 import '../doctors/doctors_screens.dart';
 import 'appointment_booking_screens.dart';
 import 'data/mock_appointments.dart';
@@ -48,7 +49,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       child: AppointmentCard(
                         appointment: appointment,
                         onDetails: () => _openDetails(appointment),
-                        onRebook: appointment.status == AppointmentStatus.completed ? _rebook : null,
+                        onRebook: appointment.status == AppointmentStatus.completed ? () => _rebook(appointment) : null,
                       ),
                     );
                   }, childCount: _visibleAppointments.length)),
