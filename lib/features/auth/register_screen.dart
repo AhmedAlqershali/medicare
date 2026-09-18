@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/medicare_widgets.dart';
 import 'auth_screens.dart';
 
 class RegisterScreen extends StatefulWidget {
