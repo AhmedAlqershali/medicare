@@ -43,7 +43,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
               const SectionHeader(title: 'الإعدادات'),
               const SizedBox(height: AppSpacing.sm),
               _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف', onTap: _editProfile),
-              _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'إعدادات الإشعارات قيد التطوير محلياً')),
+              _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context: context, message: 'إعدادات الإشعارات قيد التطوير محلياً')),
               _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context: context, message: 'تم ضبط المظهر على الوضع الفاتح')),
               _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context: context, message: 'سيتم التواصل معك في أقرب وقت')),
               _SettingTile(icon: Icons.info_outline, title: 'عن Medicare', onTap: () => _showMessage(context: context, message: 'Medicare منصة رعاية صحية حديثة')),

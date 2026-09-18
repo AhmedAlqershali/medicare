@@ -114,7 +114,7 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
       );
 
   Future<void> _openDetails(OrganizationDoctor doctor) async {
-    final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<void>(builder: (_) => OrganizationDoctorDetailsScreen(doctor: doctor)));
+    final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<OrganizationDoctor>(builder: (_) => OrganizationDoctorDetailsScreen(doctor: doctor)));
     if (updated != null && mounted) {
       setState(() {
         final index = _doctors.indexWhere((item) => item.id == doctor.id);
@@ -189,7 +189,7 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
               ),
               const SizedBox(height: AppSpacing.xl),
               SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل بيانات الطبيب', icon: Icons.edit_outlined, onPressed: () async {
-                final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<void>(builder: (_) => OrganizationDoctorFormScreen(doctor: _doctor)));
+                final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<OrganizationDoctor>(builder: (_) => OrganizationDoctorFormScreen(doctor: _doctor)));
                 if (updated != null && mounted) setState(() => _doctor = updated);
               })),
               const SizedBox(height: AppSpacing.sm),

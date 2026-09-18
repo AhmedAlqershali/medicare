@@ -77,7 +77,7 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
       );
 
   Future<void> _openClinicDetails(OrganizationClinic clinic) async {
-    final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<void>(builder: (_) => OrganizationClinicDetailsScreen(clinic: clinic)));
+    final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => OrganizationClinicDetailsScreen(clinic: clinic)));
     if (updated != null && mounted) {
       setState(() {
         final index = _clinics.indexWhere((item) => item.id == clinic.id);
@@ -87,7 +87,7 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   }
 
   Future<void> _openAddClinic() async {
-    final created = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<void>(builder: (_) => const OrganizationClinicFormScreen()));
+    final created = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => const OrganizationClinicFormScreen()));
     if (created != null && mounted) {
       setState(() => _clinics.insert(0, created));
     }
@@ -208,7 +208,7 @@ class _OrganizationClinicDetailsScreenState extends State<OrganizationClinicDeta
               ),
               const SizedBox(height: AppSpacing.xl),
               SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل بيانات العيادة', icon: Icons.edit_outlined, onPressed: () async {
-                final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<void>(builder: (_) => OrganizationClinicFormScreen(clinic: _clinic)));
+                final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => OrganizationClinicFormScreen(clinic: _clinic)));
                 if (updated != null && mounted) {
                   setState(() => _clinic = updated);
                   Navigator.of(context).pop(updated);
