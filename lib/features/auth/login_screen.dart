@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
 import 'auth_screens.dart';
 import 'register_screen.dart';
 
@@ -43,85 +42,102 @@ class _LoginScreenState extends State<LoginScreen> {
         body: SafeArea(
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(14)),
-                      child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          Icons.add_rounded,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          size: 26,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Text('مرحبا محمود'),
-                  Text('مرحباً بعودتك', style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text('سجّل الدخول لمتابعة رعايتك الصحية', style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextFormField(
-                    controller: _contactController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autofillHints: const [AutofillHints.username, AutofillHints.email],
-                    validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
-                    decoration: InputDecoration(
-                      labelText: 'رقم الجوال أو البريد الإلكتروني',
-                      prefixIcon: const Icon(Icons.person_outline_rounded),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+                    const SizedBox(height: 16),
+                    const Text('Medicare'),
+                    const SizedBox(height: 16),
+                    const Text('مرحبا محمود'),
+                    const SizedBox(height: 8),
+                    Text('مرحباً بعودتك', style: Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 4),
+                    Text('سجّل الدخول لمتابعة رعايتك الصحية', style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _contactController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.username, AutofillHints.email],
+                      validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
+                      decoration: InputDecoration(
+                        hintText: 'رقم الجوال أو البريد الإلكتروني',
+                        prefixIcon: const Icon(Icons.person_outline_rounded),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: const [AutofillHints.password],
-                    validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
-                    decoration: InputDecoration(
-                      labelText: 'كلمة المرور',
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.password],
+                      validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
+                      decoration: InputDecoration(
+                        hintText: 'كلمة المرور',
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5),
+                        ),
+                      ),
                     ),
-                  ),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: TextButton(onPressed: _showForgotPasswordMessage, child: const Text('نسيت كلمة المرور؟')),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  SizedBox(
-                    height: 52,
-                    child: FilledButton.icon(
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(onPressed: _showForgotPasswordMessage, child: const Text('نسيت كلمة المرور؟')),
+                    ),
+                    FilledButton(
                       onPressed: _isLoading ? null : _login,
-                      icon: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const SizedBox.shrink(),
-                      label: Text(_isLoading ? 'جارٍ التحميل...' : 'تسجيل الدخول'),
+                      child: _isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text('تسجيل الدخول'),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('ليس لديك حساب؟', style: Theme.of(context).textTheme.bodyMedium),
-                      TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen())), child: const Text('إنشاء حساب')),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('ليس لديك حساب؟', style: Theme.of(context).textTheme.bodyMedium),
+                        TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen())), child: const Text('إنشاء حساب')),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
