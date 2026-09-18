@@ -183,39 +183,55 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showForgotPasswordMessage() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('سيتم توفير استعادة كلمة المرور قريباً')));
 
   @override
-  Widget build(BuildContext context) => _AuthScaffold(
-        formKey: _formKey,
-        title: 'مرحباً بعودتك',
-        subtitle: 'سجّل الدخول لمتابعة رعايتك الصحية',
-        children: [
-          CustomTextField(
-            label: 'رقم الجوال أو البريد الإلكتروني',
-            prefixIcon: Icons.person_outline_rounded,
-            controller: _contactController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _BrandMark(size: 50),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text('مرحباً بعودتك', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text('سجّل الدخول لمتابعة رعايتك الصحية', style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: AppSpacing.xl),
+                  CustomTextField(
+                    label: 'رقم الجوال أو البريد الإلكتروني',
+                    prefixIcon: Icons.person_outline_rounded,
+                    controller: _contactController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.username, AutofillHints.email],
+                    validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  CustomTextField(
+                    label: 'كلمة المرور',
+                    prefixIcon: Icons.lock_outline_rounded,
+                    controller: _passwordController,
+                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [AutofillHints.password],
+                    validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(onPressed: _showForgotPasswordMessage, child: const Text('نسيت كلمة المرور؟')),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  PrimaryButton(label: 'تسجيل الدخول', onPressed: _login, isLoading: _isLoading),
+                  const SizedBox(height: AppSpacing.lg),
+                  _AuthPrompt(label: 'ليس لديك حساب؟', action: 'إنشاء حساب', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen()))),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          CustomTextField(
-            label: 'كلمة المرور',
-            prefixIcon: Icons.lock_outline_rounded,
-            controller: _passwordController,
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
-          ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton(onPressed: _showForgotPasswordMessage, child: const Text('نسيت كلمة المرور؟')),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          PrimaryButton(label: 'تسجيل الدخول', onPressed: _login, isLoading: _isLoading),
-          const SizedBox(height: AppSpacing.lg),
-          _AuthPrompt(label: 'ليس لديك حساب؟', action: 'إنشاء حساب', onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen()))),
-        ],
+        ),
       );
 }
 
@@ -389,11 +405,10 @@ class DoctorPlaceholderScreen extends StatelessWidget {
 }
 
 class _AuthScaffold extends StatelessWidget {
-  const _AuthScaffold({required this.title, required this.subtitle, required this.children, this.formKey, this.showBack = false});
+  const _AuthScaffold({required this.title, required this.subtitle, required this.children, this.showBack = false});
   final String title;
   final String subtitle;
   final List<Widget> children;
-  final GlobalKey<FormState>? formKey;
   final bool showBack;
 
   @override
@@ -410,7 +425,7 @@ class _AuthScaffold extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: AppSpacing.xl),
-              if (formKey == null) ...children else Form(key: formKey, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: children)),
+              ...children,
             ]),
           ),
         ),
