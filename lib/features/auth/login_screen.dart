@@ -14,13 +14,19 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _login() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+    });
 
-    await Future<void>.delayed(const Duration(milliseconds: 700));
+    await Future<void>.delayed(
+      const Duration(milliseconds: 700),
+    );
 
     if (!mounted) return;
 
-    setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = false;
+    });
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
@@ -45,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
@@ -63,66 +68,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Test field 1',
-                  filled: false,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  isDense: true,
-                ),
+              const SizedBox(
+                height: 50,
+                child: TextField(),
               ),
 
               const SizedBox(height: 16),
 
-              const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Test field 2',
-                  filled: false,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  isDense: true,
-                ),
+              const SizedBox(
+                height: 50,
+                child: TextField(),
               ),
 
               const SizedBox(height: 20),
@@ -131,7 +86,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   onPressed: _showForgotPasswordMessage,
-                  child: const Text('نسيت كلمة المرور؟'),
+                  child: const Text(
+                    'نسيت كلمة المرور؟',
+                  ),
                 ),
               ),
 
@@ -147,7 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text('تسجيل الدخول'),
+                    : const Text(
+                        'تسجيل الدخول',
+                      ),
               ),
 
               const SizedBox(height: 16),
