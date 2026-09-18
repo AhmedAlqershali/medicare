@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
+import 'data/mock_organization_clinics.dart';
+import 'data/mock_organization_doctors.dart';
+import 'models/organization_clinic.dart';
+import 'models/organization_doctor.dart';
 import 'organization_clinics_screen.dart';
 import 'organization_doctors_screen.dart';
 import 'organization_profile_screens.dart';
