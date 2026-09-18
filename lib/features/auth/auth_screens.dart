@@ -169,6 +169,7 @@ class _UserTypeScreenState extends State<UserTypeScreen> {
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('اختر نوع الحساب', style: Theme.of(context).textTheme.headlineSmall),
+              const Text('مرحبا سعيد'),
               const SizedBox(height: AppSpacing.xs),
               Text('لنقدم لك تجربة مناسبة لاحتياجاتك', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: AppSpacing.xl),
@@ -223,6 +224,7 @@ class DoctorPlaceholderScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               const _BrandMark(size: 68),
               const SizedBox(height: AppSpacing.lg),
+              const Text('مرحبا خالد'),
               Text('تجربة الطبيب قريباً', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: AppSpacing.sm),
               Text('نجهّز لك مساحة مهنية تساعدك على إدارة مواعيدك والتواصل مع مرضاك بسهولة.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),

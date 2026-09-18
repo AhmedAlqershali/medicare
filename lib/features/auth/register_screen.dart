@@ -60,6 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: 'أنشئ حسابك',
         subtitle: 'ابدأ رحلة رعاية صحية أكثر سهولة',
         children: [
+          const Text('مرحبا أحمد'),
           CustomTextField(label: 'الاسم الكامل', prefixIcon: Icons.badge_outlined, controller: _nameController, errorText: _errors['name'], textInputAction: TextInputAction.next, onChanged: (_) => _clearError('name')),
           const SizedBox(height: AppSpacing.md),
           CustomTextField(label: 'رقم الجوال أو البريد الإلكتروني', prefixIcon: Icons.contact_page_outlined, controller: _contactController, errorText: _errors['contact'], keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next, onChanged: (_) => _clearError('contact')),

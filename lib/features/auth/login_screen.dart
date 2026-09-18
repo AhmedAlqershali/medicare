@@ -60,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
+                  const Text('مرحبا محمود'),
                   Text('مرحباً بعودتك', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: AppSpacing.xs),
                   Text('سجّل الدخول لمتابعة رعايتك الصحية', style: Theme.of(context).textTheme.bodyMedium),
