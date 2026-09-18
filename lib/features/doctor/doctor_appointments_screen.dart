@@ -19,7 +19,60 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
   @override
   Widget build(BuildContext context) {
     final visible = _appointments.where((item) => item.status == _selectedFilter).toList();
-    return Scaffold(appBar: AppBar(title: const Text('مواعيدي')), body: SafeArea(child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [SliverPadding(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md), sliver: SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('نظّم جدولك وتابع مرضاك بسهولة', style: Theme.of(context).textTheme.bodyLarge), const SizedBox(height: AppSpacing.lg), _FilterTabs(selected: _selectedFilter, onChanged: (filter) => setState(() => _selectedFilter = filter))]))), if (visible.isEmpty) const SliverFillRemaining(hasScrollBody: false, child: EmptyState(title: 'لا توجد مواعيد', message: 'ستظهر المواعيد هنا عند توفرها.', icon: Icons.event_available_outlined)) else SliverPadding(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl), sliver: SliverList(delegate: SliverChildBuilderDelegate((context, index) { final appointment = visible[index]; return Padding(padding: const EdgeInsets.only(bottom: AppSpacing.md), child: _DoctorAppointmentCard(appointment: appointment, onDetails: () => _openDetails(appointment))); }, childCount: visible.length)))]));
+    return Scaffold(
+      appBar: AppBar(title: const Text('مواعيدي')),
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('نظّم جدولك وتابع مرضاك بسهولة', style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: AppSpacing.lg),
+                    _FilterTabs(
+                      selected: _selectedFilter,
+                      onChanged: (filter) => setState(() => _selectedFilter = filter),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (visible.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  title: 'لا توجد مواعيد',
+                  message: 'ستظهر المواعيد هنا عند توفرها.',
+                  icon: Icons.event_available_outlined,
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final appointment = visible[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: _DoctorAppointmentCard(
+                          appointment: appointment,
+                          onDetails: () => _openDetails(appointment),
+                        ),
+                      );
+                    },
+                    childCount: visible.length,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _openDetails(DoctorAppointment appointment) async {
@@ -34,7 +87,46 @@ class _FilterTabs extends StatelessWidget {
   final ValueChanged<DoctorAppointmentFilter> onChanged;
 
   @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)), child: Row(children: [for (final item in const [(DoctorAppointmentFilter.today, 'اليوم'), (DoctorAppointmentFilter.upcoming, 'القادمة'), (DoctorAppointmentFilter.completed, 'المكتملة'), (DoctorAppointmentFilter.cancelled, 'الملغاة')]) Expanded(child: GestureDetector(onTap: () => onChanged(item.$1), child: AnimatedContainer(duration: const Duration(milliseconds: 180), padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: selected == item.$1 ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(10)), child: Text(item.$2, textAlign: TextAlign.center, style: TextStyle(color: selected == item.$1 ? Colors.white : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w700))))]));
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            for (final item in const [
+              (DoctorAppointmentFilter.today, 'اليوم'),
+              (DoctorAppointmentFilter.upcoming, 'القادمة'),
+              (DoctorAppointmentFilter.completed, 'المكتملة'),
+              (DoctorAppointmentFilter.cancelled, 'الملغاة'),
+            ])
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => onChanged(item.$1),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: selected == item.$1 ? AppColors.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      item.$2,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: selected == item.$1 ? Colors.white : AppColors.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
 }
 
 class _DoctorAppointmentCard extends StatelessWidget {
@@ -69,7 +161,93 @@ class _DoctorAppointmentDetailsScreenState extends State<DoctorAppointmentDetail
   @override
   Widget build(BuildContext context) {
     final appointment = widget.appointment.copyWith(status: _status);
-    return Scaffold(appBar: AppBar(title: const Text('تفاصيل الموعد')), body: SafeArea(child: SingleChildScrollView(physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [AppCard(child: Row(children: [AppAvatar(initials: appointment.patientInitials, size: 68, backgroundColor: appointment.avatarColor), const SizedBox(width: AppSpacing.md), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(appointment.patientName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)), const SizedBox(height: 5), Text('${appointment.age}  •  ${appointment.gender}', style: Theme.of(context).textTheme.bodyMedium), const SizedBox(height: AppSpacing.sm), TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _DoctorPatientPreviewScreen())), child: const Text('عرض ملف المريض'))]))])), const SizedBox(height: AppSpacing.xl), Text('معلومات الموعد', style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: AppSpacing.sm), AppCard(child: Column(children: [_DetailRow(label: 'التاريخ', value: appointment.date, icon: Icons.calendar_month_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'الوقت', value: appointment.time, icon: Icons.schedule_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'نوع الموعد', value: appointment.type, icon: Icons.medical_services_outlined), const Divider(height: AppSpacing.lg), _DetailRow(label: 'الحالة', value: appointment.statusLabel, icon: Icons.info_outline, valueColor: appointment.statusColor)])), const SizedBox(height: AppSpacing.xl), Text('ملاحظات الموعد', style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: AppSpacing.sm), AppCard(child: Text(appointment.notes, style: Theme.of(context).textTheme.bodyLarge)), if (_status == DoctorAppointmentFilter.today || _status == DoctorAppointmentFilter.upcoming) ...[const SizedBox(height: AppSpacing.xl), SizedBox(width: double.infinity, child: PrimaryButton(label: 'تأكيد الموعد', icon: Icons.check_rounded, onPressed: () => setState(() => _status = DoctorAppointmentFilter.upcoming))), const SizedBox(height: AppSpacing.sm), Row(children: [Expanded(child: OutlinedButton(onPressed: () => setState(() => _status = DoctorAppointmentFilter.cancelled), child: const Text('إلغاء الموعد'))), const SizedBox(width: AppSpacing.sm), Expanded(child: FilledButton.icon(onPressed: () => setState(() => _status = DoctorAppointmentFilter.completed), icon: const Icon(Icons.play_arrow_rounded), label: const Text('بدء الموعد')))])]]))); 
+    return Scaffold(
+      appBar: AppBar(title: const Text('تفاصيل الموعد')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppCard(
+                child: Row(
+                  children: [
+                    AppAvatar(initials: appointment.patientInitials, size: 68, backgroundColor: appointment.avatarColor),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(appointment.patientName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)),
+                          const SizedBox(height: 5),
+                          Text('${appointment.age}  •  ${appointment.gender}', style: Theme.of(context).textTheme.bodyMedium),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _DoctorPatientPreviewScreen())),
+                            child: const Text('عرض ملف المريض'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text('معلومات الموعد', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                child: Column(
+                  children: [
+                    _DetailRow(label: 'التاريخ', value: appointment.date, icon: Icons.calendar_month_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'الوقت', value: appointment.time, icon: Icons.schedule_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'نوع الموعد', value: appointment.type, icon: Icons.medical_services_outlined),
+                    const Divider(height: AppSpacing.lg),
+                    _DetailRow(label: 'الحالة', value: appointment.statusLabel, icon: Icons.info_outline, valueColor: appointment.statusColor),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Text('ملاحظات الموعد', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(child: Text(appointment.notes, style: Theme.of(context).textTheme.bodyLarge)),
+              if (_status == DoctorAppointmentFilter.today || _status == DoctorAppointmentFilter.upcoming) ...[
+                const SizedBox(height: AppSpacing.xl),
+                SizedBox(
+                  width: double.infinity,
+                  child: PrimaryButton(
+                    label: 'تأكيد الموعد',
+                    icon: Icons.check_rounded,
+                    onPressed: () => setState(() => _status = DoctorAppointmentFilter.upcoming),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => setState(() => _status = DoctorAppointmentFilter.cancelled),
+                        child: const Text('إلغاء الموعد'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => setState(() => _status = DoctorAppointmentFilter.completed),
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text('بدء الموعد'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
 }
@@ -82,7 +260,24 @@ class _DetailRow extends StatelessWidget {
   final Color? valueColor;
 
   @override
-  Widget build(BuildContext context) => Row(children: [Container(width: 36, height: 36, decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(11)), child: Icon(icon, color: AppColors.primary, size: 19)), const SizedBox(width: AppSpacing.sm), Text('$label: ', style: Theme.of(context).textTheme.bodyMedium), Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: valueColor ?? AppColors.ink, fontWeight: FontWeight.w700)))]);
+  Widget build(BuildContext context) => Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(11)),
+            child: Icon(icon, color: AppColors.primary, size: 19),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text('$label: ', style: Theme.of(context).textTheme.bodyMedium),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: valueColor ?? AppColors.ink, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      );
 }
 
 class _DoctorPatientPreviewScreen extends StatelessWidget {

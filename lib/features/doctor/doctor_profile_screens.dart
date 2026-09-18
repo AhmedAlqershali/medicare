@@ -14,7 +14,56 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   var _profile = const _DoctorProfile(name: 'د. أحمد العتيبي', specialty: 'طب عام', clinic: 'مركز Medicare الطبي', email: 'ahmed.alotaibi@example.com', phone: '050 987 6543');
 
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('الملف الشخصي')), body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [AppCard(child: Row(children: [const AppAvatar(initials: 'أ ح', size: 72, backgroundColor: AppColors.sky), const SizedBox(width: AppSpacing.md), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_profile.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)), const SizedBox(height: 4), Text(_profile.specialty, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.w700)), const SizedBox(height: 3), Text(_profile.clinic, style: Theme.of(context).textTheme.bodyMedium)])), IconButton(onPressed: _editProfile, icon: const Icon(Icons.edit_outlined), tooltip: 'تعديل الملف الشخصي')])), const SizedBox(height: AppSpacing.xl), const SectionHeader(title: 'معلومات التواصل'), const SizedBox(height: AppSpacing.sm), _InfoTile(icon: Icons.badge_outlined, label: 'التخصص', value: _profile.specialty), _InfoTile(icon: Icons.local_hospital_outlined, label: 'العيادة', value: _profile.clinic), _InfoTile(icon: Icons.email_outlined, label: 'البريد الإلكتروني', value: _profile.email), _InfoTile(icon: Icons.phone_outlined, label: 'رقم الهاتف', value: _profile.phone), const SizedBox(height: AppSpacing.lg), const SectionHeader(title: 'الإعدادات'), const SizedBox(height: AppSpacing.sm), _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف الشخصي', onTap: _editProfile), _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'إعدادات الإشعارات متاحة محلياً')), _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context, 'المظهر مضبوط على الوضع الفاتح')), _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context, 'يسعدنا مساعدتك')), _SettingTile(icon: Icons.info_outline, title: 'عن Medicare', onTap: () => _showMessage(context, 'Medicare للرعاية الصحية')), _SettingTile(icon: Icons.logout_rounded, title: 'تسجيل الخروج', color: const Color(0xFFC84C4C), onTap: () => _showLogoutDialog(context))])));
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('الملف الشخصي')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppCard(
+                  child: Row(
+                    children: [
+                      const AppAvatar(initials: 'أ ح', size: 72, backgroundColor: AppColors.sky),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_profile.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18)),
+                            const SizedBox(height: 4),
+                            Text(_profile.specialty, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 3),
+                            Text(_profile.clinic, style: Theme.of(context).textTheme.bodyMedium),
+                          ],
+                        ),
+                      ),
+                      IconButton(onPressed: _editProfile, icon: const Icon(Icons.edit_outlined), tooltip: 'تعديل الملف الشخصي'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                const SectionHeader(title: 'معلومات التواصل'),
+                const SizedBox(height: AppSpacing.sm),
+                _InfoTile(icon: Icons.badge_outlined, label: 'التخصص', value: _profile.specialty),
+                _InfoTile(icon: Icons.local_hospital_outlined, label: 'العيادة', value: _profile.clinic),
+                _InfoTile(icon: Icons.email_outlined, label: 'البريد الإلكتروني', value: _profile.email),
+                _InfoTile(icon: Icons.phone_outlined, label: 'رقم الهاتف', value: _profile.phone),
+                const SizedBox(height: AppSpacing.lg),
+                const SectionHeader(title: 'الإعدادات'),
+                const SizedBox(height: AppSpacing.sm),
+                _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف الشخصي', onTap: _editProfile),
+                _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'إعدادات الإشعارات متاحة محلياً')),
+                _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context, 'المظهر مضبوط على الوضع الفاتح')),
+                _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context, 'يسعدنا مساعدتك')),
+                _SettingTile(icon: Icons.info_outline, title: 'عن Medicare', onTap: () => _showMessage(context, 'Medicare للرعاية الصحية')),
+                _SettingTile(icon: Icons.logout_rounded, title: 'تسجيل الخروج', color: const Color(0xFFC84C4C), onTap: () => _showLogoutDialog(context)),
+              ],
+            ),
+          ),
+        ),
+      );
 
   Future<void> _editProfile() async {
     final updated = await Navigator.of(context).push<_DoctorProfile>(MaterialPageRoute(builder: (_) => DoctorEditProfileScreen(profile: _profile)));
@@ -75,7 +124,32 @@ class _DoctorEditProfileScreenState extends State<DoctorEditProfileScreen> {
   void dispose() { _nameController.dispose(); _specialtyController.dispose(); _clinicController.dispose(); _emailController.dispose(); _phoneController.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('تعديل الملف الشخصي')), body: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl), child: Column(children: [CustomTextField(label: 'اسم الطبيب', prefixIcon: Icons.badge_outlined, controller: _nameController), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'التخصص', prefixIcon: Icons.medical_information_outlined, controller: _specialtyController), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'العيادة', prefixIcon: Icons.local_hospital_outlined, controller: _clinicController), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'رقم الهاتف', prefixIcon: Icons.phone_outlined, controller: _phoneController, keyboardType: TextInputType.phone), const SizedBox(height: AppSpacing.xl), SizedBox(width: double.infinity, child: PrimaryButton(label: 'حفظ التغييرات', icon: Icons.check_rounded, onPressed: _save))])));
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('تعديل الملف الشخصي')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+            child: Column(
+              children: [
+                CustomTextField(label: 'اسم الطبيب', prefixIcon: Icons.badge_outlined, controller: _nameController),
+                const SizedBox(height: AppSpacing.md),
+                CustomTextField(label: 'التخصص', prefixIcon: Icons.medical_information_outlined, controller: _specialtyController),
+                const SizedBox(height: AppSpacing.md),
+                CustomTextField(label: 'العيادة', prefixIcon: Icons.local_hospital_outlined, controller: _clinicController),
+                const SizedBox(height: AppSpacing.md),
+                CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress),
+                const SizedBox(height: AppSpacing.md),
+                CustomTextField(label: 'رقم الهاتف', prefixIcon: Icons.phone_outlined, controller: _phoneController, keyboardType: TextInputType.phone),
+                const SizedBox(height: AppSpacing.xl),
+                SizedBox(
+                  width: double.infinity,
+                  child: PrimaryButton(label: 'حفظ التغييرات', icon: Icons.check_rounded, onPressed: _save),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 
   void _save() => Navigator.of(context).pop(_DoctorProfile(name: _nameController.text.trim(), specialty: _specialtyController.text.trim(), clinic: _clinicController.text.trim(), email: _emailController.text.trim(), phone: _phoneController.text.trim()));
 }
@@ -93,7 +167,81 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
   static const _slots = [('٠٨:٠٠ ص', true), ('٠٩:٠٠ ص', false), ('١٠:٠٠ ص', true), ('١١:٠٠ ص', false), ('٠١:٠٠ م', false), ('٠٢:٠٠ م', true), ('٠٤:٠٠ م', false)];
 
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('الجدول')), body: SafeArea(child: SingleChildScrollView(physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('جدول مواعيدك لهذا الأسبوع', style: Theme.of(context).textTheme.bodyLarge), const SizedBox(height: AppSpacing.lg), SizedBox(height: 76, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: _days.length, separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm), itemBuilder: (context, index) { final selected = _selectedDay == index; return InkWell(onTap: () => setState(() => _selectedDay = index), borderRadius: BorderRadius.circular(14), child: Container(width: 76, decoration: BoxDecoration(color: selected ? AppColors.primary : AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? AppColors.primary : AppColors.border)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(_days[index].$1, style: TextStyle(color: selected ? Colors.white : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)), const SizedBox(height: 4), Text(_days[index].$2, style: TextStyle(color: selected ? Colors.white : AppColors.ink, fontSize: 18, fontWeight: FontWeight.w800))]))); })), const SizedBox(height: AppSpacing.xl), const SectionHeader(title: 'ساعات العمل'), const SizedBox(height: AppSpacing.sm), const AppCard(child: Row(children: [Icon(Icons.access_time_outlined, color: AppColors.primary), SizedBox(width: AppSpacing.sm), Text('من ٠٨:٠٠ صباحاً إلى ٠٥:٠٠ مساءً', style: TextStyle(fontWeight: FontWeight.w700)),])), const SizedBox(height: AppSpacing.xl), const SectionHeader(title: 'الفترات المتاحة'), const SizedBox(height: AppSpacing.sm), Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: [for (final slot in _slots) _ScheduleSlot(time: slot.$1, booked: slot.$2)]), const SizedBox(height: AppSpacing.lg), Row(children: [const _Legend(color: AppColors.primary, label: 'محجوز'), const SizedBox(width: AppSpacing.lg), const _Legend(color: AppColors.mint, label: 'متاح')])])));
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('الجدول')),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('جدول مواعيدك لهذا الأسبوع', style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: AppSpacing.lg),
+                SizedBox(
+                  height: 76,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _days.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+                    itemBuilder: (context, index) {
+                      final selected = _selectedDay == index;
+                      return InkWell(
+                        onTap: () => setState(() => _selectedDay = index),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          width: 76,
+                          decoration: BoxDecoration(
+                            color: selected ? AppColors.primary : AppColors.surface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(_days[index].$1, style: TextStyle(color: selected ? Colors.white : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 4),
+                              Text(_days[index].$2, style: TextStyle(color: selected ? Colors.white : AppColors.ink, fontSize: 18, fontWeight: FontWeight.w800)),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                const SectionHeader(title: 'ساعات العمل'),
+                const SizedBox(height: AppSpacing.sm),
+                const AppCard(
+                  child: Row(
+                    children: [
+                      Icon(Icons.access_time_outlined, color: AppColors.primary),
+                      SizedBox(width: AppSpacing.sm),
+                      Text('من ٠٨:٠٠ صباحاً إلى ٠٥:٠٠ مساءً', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                const SectionHeader(title: 'الفترات المتاحة'),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [for (final slot in _slots) _ScheduleSlot(time: slot.$1, booked: slot.$2)],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                const Row(
+                  children: [
+                    _Legend(color: AppColors.primary, label: 'محجوز'),
+                    SizedBox(width: AppSpacing.lg),
+                    _Legend(color: AppColors.mint, label: 'متاح'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class _ScheduleSlot extends StatelessWidget {
