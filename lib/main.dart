@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_screens.dart';
+import 'features/auth/login_screen.dart';
 
 void main() {
   runApp(const MedicareApp());

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:medicare/main.dart';
 import 'package:medicare/features/auth/auth_screens.dart';
+import 'package:medicare/features/auth/login_screen.dart';
 
 void main() {
   testWidgets('starts with the Arabic Medicare onboarding flow', (WidgetTester tester) async {
