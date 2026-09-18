@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'LOGIN BACKGROUND TEST',
+                    'NO TEXTFIELD TEST',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -57,28 +57,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: 'Email',
-                      border: const OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
+                  const Text(
+                    'إذا اختفى المستطيل، فالسبب في TextFormField أو InputDecoration.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      border: const OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   FilledButton(
                     onPressed: () {},
-                    child: const Text('LOGIN'),
+                    child: const Text('TEST BUTTON'),
                   ),
                 ],
               ),
