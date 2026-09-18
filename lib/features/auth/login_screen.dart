@@ -11,7 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -25,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _isLoading = true);
     await Future<void>.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
@@ -39,15 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.yellow,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
+                child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
@@ -68,35 +64,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       const Text('سجل الدخول لمتابعة رعايتك الصحية'),
                       const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _contactController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.username, AutofillHints.email],
-                        validator: (value) => value == null || value.trim().isEmpty ? 'أدخل رقم الجوال أو البريد الإلكتروني' : null,
-                        decoration: const InputDecoration(
-                          hintText: 'البريد الإلكتروني',
-                          prefixIcon: Icon(Icons.email_outlined),
+                      const TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Test field',
                           border: OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.password],
-                        validator: (value) => value == null || value.isEmpty ? 'أدخل كلمة المرور' : null,
+                      const TextField(
                         decoration: const InputDecoration(
-                          hintText: 'كلمة المرور',
-                          prefixIcon: Icon(Icons.lock_outline),
+                          hintText: 'Test field',
                           border: OutlineInputBorder(),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
                       ),
                       Align(
@@ -123,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ],
-                  ),
                 ),
               ),
             ),
