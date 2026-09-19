@@ -7,7 +7,9 @@ import '../clinics/data/mock_clinics.dart';
 import '../doctors/doctors_screens.dart';
 import 'appointment_booking_screens.dart';
 import 'data/mock_appointments.dart';
+import 'models/appointment_booking_data.dart';
 import 'models/appointment_model.dart';
+import 'models/appointment_status.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum AppointmentStatus { upcoming, completed, cancelled }
+import 'appointment_status.dart';
 
 class MockAppointment {
   const MockAppointment({required this.doctorName, required this.doctorInitials, required this.specialty, required this.clinicName, required this.location, required this.date, required this.time, required this.type, required this.status, required this.avatarColor, this.notes});

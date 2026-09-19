@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/appointment_model.dart';
+import '../models/appointment_status.dart';
 
 const mockAppointments = [
   MockAppointment(doctorName: 'د. ريم الحربي', doctorInitials: 'ر ح', specialty: 'طب عام', clinicName: 'عيادات النخبة', location: 'حي العليا، الرياض', date: 'الثلاثاء، ٢٤ سبتمبر', time: '١٠:٣٠ صباحاً', type: 'زيارة في العيادة', status: AppointmentStatus.upcoming, avatarColor: AppColors.sky, notes: 'إحضار نتائج الفحوصات السابقة.'),
