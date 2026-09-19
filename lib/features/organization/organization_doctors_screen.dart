@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/models/account_status.dart';
+import '../../core/auth/services/mock_doctor_repository.dart';
+import '../../core/auth/services/mock_organization_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import 'data/mock_organization_doctors.dart';
+import 'add_doctor_screen.dart';
 import 'models/organization_doctor.dart';
 
 class OrganizationDoctorsScreen extends StatefulWidget {
@@ -19,7 +22,7 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   String _selectedSpecialty = 'الكل';
   String _selectedClinic = 'الكل';
   String _query = '';
-  late List<OrganizationDoctor> _doctors = List.of(mockOrganizationDoctors);
+  late List<OrganizationDoctor> _doctors = _visibleDoctors();
 
   List<OrganizationDoctor> get _filteredDoctors => _doctors.where((doctor) {
     final query = _query.trim();
@@ -29,6 +32,12 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
     return matchesSpecialty && matchesClinic && matchesSearch;
   }).toList();
 
+  List<OrganizationDoctor> _visibleDoctors() {
+    final organizationId = MockOrganizationRepository.instance.currentOrganization?.id;
+    if (organizationId == null) return const [];
+    return MockDoctorRepository.instance.doctorsForOrganization(organizationId).map((doctor) => OrganizationDoctor(id: doctor.id, name: doctor.name, initials: doctor.initials, specialty: doctor.specialty, clinic: MockOrganizationRepository.instance.currentOrganization?.name ?? 'المؤسسة الطبية', phone: 'غير متاح', email: doctor.email, status: doctor.status == AccountStatus.active ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.sky, scheduleSummary: 'سيتم تحديد الجدول بعد تفعيل الحساب')).toList();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -37,7 +46,7 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('الأطباء')),
+        appBar: AppBar(title: const Text('الأطباء'), actions: [IconButton(onPressed: _openAddDoctor, icon: const Icon(Icons.person_add_alt_1_outlined), tooltip: 'إضافة طبيب')]),
         body: SafeArea(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -121,6 +130,11 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
         if (index != -1) _doctors[index] = updated;
       });
     }
+  }
+
+  Future<void> _openAddDoctor() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AddDoctorScreen()));
+    if (mounted) setState(() => _doctors = _visibleDoctors());
   }
 }
 

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/services/mock_patient_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import 'data/mock_doctor_patients.dart';
+import 'add_patient_screen.dart';
 import 'models/doctor_patient.dart';
 
 class DoctorPatientsScreen extends StatefulWidget {
@@ -16,12 +17,14 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
+  List<DoctorPatient> _visiblePatients() => MockPatientRepository.instance.patientsForDoctor(MockPatientRepository.instance.currentDoctorId ?? '').map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.status.name == 'active' ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
+
   @override
   void dispose() { _searchController.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
-    final patients = doctorPatients
+    final patients = _visiblePatients()
         .where((patient) => patient.name.contains(_query.trim()) || patient.status.contains(_query.trim()))
         .toList();
     final slivers = <Widget>[
@@ -87,7 +90,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('المرضى')),
+      appBar: AppBar(title: const Text('المرضى'), actions: [IconButton(onPressed: _openAddPatient, icon: const Icon(Icons.person_add_alt_1_outlined), tooltip: 'إضافة مريض')]),
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -96,6 +99,8 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
       ),
     );
   }
+
+  void _openAddPatient() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AddPatientScreen()));
 }
 
 class _PatientCard extends StatelessWidget {

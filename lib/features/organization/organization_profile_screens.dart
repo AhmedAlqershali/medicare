@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 
@@ -60,7 +61,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
 
   static void _showMessage({required BuildContext context, required String message}) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
-  static Future<void> _showLogoutDialog(BuildContext context) async => showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(title: const Text('تسجيل الخروج'), content: const Text('هل أنت متأكد من تسجيل الخروج؟'), actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('إلغاء')), FilledButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('تسجيل الخروج'))]));
+  static Future<void> _showLogoutDialog(BuildContext context) async => showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(title: const Text('تسجيل الخروج'), content: const Text('هل أنت متأكد من تسجيل الخروج؟'), actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('إلغاء')), FilledButton(onPressed: () { Navigator.of(dialogContext).pop(); AuthNavigation.openSignedOutFlow(context); }, child: const Text('تسجيل الخروج'))]));
 }
 
 class _OrganizationProfile {

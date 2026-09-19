@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/auth/models/account_role.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import '../organization/organization_home_screen.dart';
-import '../doctor/doctor_home_screen.dart';
-import '../patient/patient_home_screen.dart';
+import 'role_login_screen.dart';
 
 export 'auth_widgets.dart';
 
@@ -158,7 +157,7 @@ class UserTypeScreen extends StatefulWidget {
 }
 
 class _UserTypeScreenState extends State<UserTypeScreen> {
-  String _selectedType = 'patient';
+  AccountRole _selectedRole = AccountRole.patient;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -179,8 +178,8 @@ class _UserTypeScreenState extends State<UserTypeScreen> {
                 description: 'احجز مواعيدك وتابع رعايتك الصحية',
                 icon: Icons.person_outline_rounded,
                 color: AppColors.mint,
-                selected: _selectedType == 'patient',
-                onTap: () => setState(() => _selectedType = 'patient'),
+                selected: _selectedRole == AccountRole.patient,
+                onTap: () => setState(() => _selectedRole = AccountRole.patient),
               ),
               const SizedBox(height: AppSpacing.md),
               _AccountTypeCard(
@@ -188,8 +187,8 @@ class _UserTypeScreenState extends State<UserTypeScreen> {
                 description: 'أدر مواعيدك وتواصل مع مرضاك',
                 icon: Icons.medical_information_outlined,
                 color: AppColors.sky,
-                selected: _selectedType == 'doctor',
-                onTap: () => setState(() => _selectedType = 'doctor'),
+                selected: _selectedRole == AccountRole.doctor,
+                onTap: () => setState(() => _selectedRole = AccountRole.doctor),
               ),
               const SizedBox(height: AppSpacing.md),
               _AccountTypeCard(
@@ -197,15 +196,11 @@ class _UserTypeScreenState extends State<UserTypeScreen> {
                 description: 'أدر عياداتك وأطباءك وخدماتك الطبية',
                 icon: Icons.business_outlined,
                 color: AppColors.peach,
-                selected: _selectedType == 'organization',
-                onTap: () => setState(() => _selectedType = 'organization'),
+                selected: _selectedRole == AccountRole.organization,
+                onTap: () => setState(() => _selectedRole = AccountRole.organization),
               ),
               const SizedBox(height: AppSpacing.xl),
-              PrimaryButton(label: 'متابعة', onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) {
-                if (_selectedType == 'patient') return const PatientHomeScreen();
-                if (_selectedType == 'doctor') return const DoctorHomeScreen();
-                return const OrganizationHomeScreen();
-              }))),
+              PrimaryButton(label: 'متابعة', onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => RoleLoginScreen(role: _selectedRole)))),
             ]),
           ),
         ),

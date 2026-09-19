@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'data/mock_patient_profile.dart';
@@ -145,7 +146,7 @@ class PatientSettingsScreen extends StatelessWidget {
           content: const Text('هل أنت متأكد من تسجيل الخروج؟'),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('إلغاء')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('تسجيل الخروج')),
+            FilledButton(onPressed: () { Navigator.of(context).pop(); AuthNavigation.openSignedOutFlow(context); }, child: const Text('تسجيل الخروج')),
           ],
         ));
   }
