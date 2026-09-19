@@ -1,7 +1,3 @@
-import 'package:flutter/material.dart';
-
-import '../theme/app_theme.dart';
-
 export 'app_card.dart';
 export 'app_avatar.dart';
 export 'app_bottom_navigation_bar.dart';
