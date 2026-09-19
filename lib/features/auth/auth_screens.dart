@@ -7,7 +7,8 @@ import '../../core/widgets/medicare_widgets.dart';
 import '../organization/organization_home_screen.dart';
 import '../doctor/doctor_home_screen.dart';
 import '../patient/patient_home_screen.dart';
-import 'login_screen.dart';
+
+export 'auth_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -95,16 +96,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _next() {
     if (_page == _pages.length - 1) {
-      _openLogin();
+      _openUserType();
       return;
     }
     _pageController.nextPage(duration: const Duration(milliseconds: 260), curve: Curves.easeOut);
   }
 
-  void _skip() => _openLogin();
+  void _skip() => _openUserType();
 
-  void _openLogin() {
-    Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => const LoginScreen()));
+  void _openUserType() {
+    Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => const UserTypeScreen()));
   }
 
   @override
@@ -247,47 +248,6 @@ class DoctorPlaceholderScreen extends StatelessWidget {
           ),
         ),
       );
-}
-
-class AuthScaffold extends StatelessWidget {
-  const AuthScaffold({required this.title, required this.subtitle, required this.children, this.showBack = false});
-  final String title;
-  final String subtitle;
-  final List<Widget> children;
-  final bool showBack;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: showBack ? AppBar(leading: const BackButton()) : null,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const _BrandMark(size: 50),
-              const SizedBox(height: AppSpacing.lg),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: AppSpacing.xs),
-              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: AppSpacing.xl),
-              ...children,
-            ]),
-          ),
-        ),
-      );
-}
-
-class AuthPrompt extends StatelessWidget {
-  const AuthPrompt({required this.label, required this.action, required this.onPressed});
-  final String label;
-  final String action;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        TextButton(onPressed: onPressed, child: Text(action)),
-      ]);
 }
 
 class _BrandMark extends StatelessWidget {

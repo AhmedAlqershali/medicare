@@ -3,17 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'appointments_screens.dart';
-
-class AppointmentBookingData {
-  const AppointmentBookingData({required this.doctorName, required this.doctorInitials, required this.specialty, required this.clinicName, required this.location, required this.avatarColor});
-
-  final String doctorName;
-  final String doctorInitials;
-  final String specialty;
-  final String clinicName;
-  final String location;
-  final Color avatarColor;
-}
+import 'models/appointment_booking_data.dart';
 
 class AppointmentBookingScreen extends StatefulWidget {
   const AppointmentBookingScreen({super.key, required this.bookingData});

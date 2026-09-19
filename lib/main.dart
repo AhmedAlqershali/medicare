@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'features/auth/login_screen.dart';
+import 'features/auth/auth_screens.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +30,7 @@ class MedicareApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
 
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }
