@@ -29,6 +29,7 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<AuthResult> login({required AccountRole role, required String email, required String password}) async {
+    final normalizedEmail = email.trim().toLowerCase();
     final user = _store.findUser(role: role, email: email);
     if (user == null) {
       if (role == AccountRole.patient) {
@@ -37,13 +38,18 @@ class MockAuthRepository implements AuthRepository {
           return const AuthResult(success: false, message: 'هذا الحساب غير مفعّل بعد. استخدم تفعيل حساب المريض أولاً.');
         }
       }
-      final invitation = _store.invitations.where((item) => item.role == role && item.email.toLowerCase() == email.trim().toLowerCase()).firstOrNull;
+      final invitation = _store.invitations.where((item) => item.role == role && item.email.toLowerCase() == normalizedEmail).firstOrNull;
       if (invitation != null && invitation.status == InvitationStatus.pending) {
         return const AuthResult(success: false, message: 'هذا الحساب مدعو، يرجى تفعيله أولاً.');
       }
       return const AuthResult(success: false, message: 'لم نجد حساباً نشطاً بهذا البريد لهذا الدور.');
     }
-    if (_store.passwords[user.id] != password) return const AuthResult(success: false, message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+
+    final isDemoCredential = normalizedEmail == MockMedicareStore.demoEmail.toLowerCase() && password == MockMedicareStore.demoPassword;
+    if (!isDemoCredential && _store.passwords[user.id] != password) {
+      return const AuthResult(success: false, message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+    }
+
     _session = AuthSession(isAuthenticated: true, currentUser: user, currentRole: role, organizationId: user.organizationId, doctorId: user.doctorId, patientId: user.patientId);
     return AuthResult(success: true, message: 'تم تسجيل الدخول بنجاح.', session: _session);
   }

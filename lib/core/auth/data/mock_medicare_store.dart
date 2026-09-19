@@ -10,17 +10,22 @@ import '../models/patient.dart';
 class MockMedicareStore {
   MockMedicareStore._();
 
+  static const demoEmail = 'abunael28@gmail.com';
+  static const demoPassword = '123456';
+
   static final instance = MockMedicareStore._();
 
   final organizations = <Organization>[
     const Organization(id: 'org_001', name: 'Gaza Medical Center', email: 'admin@gaza-medical.sa', phone: '059 111 2233', location: 'غزة، فلسطين', status: AccountStatus.active),
     const Organization(id: 'org_002', name: 'Al-Shifa Medical Clinic', email: 'admin@alshifa-medical.sa', phone: '059 444 5566', location: 'غزة، فلسطين', status: AccountStatus.active),
+    const Organization(id: 'org_demo_001', name: 'Demo Medical Organization', email: demoEmail, phone: '059 000 0000', location: 'Demo City', status: AccountStatus.active),
   ];
 
   final doctors = <Doctor>[
     const Doctor(id: 'doc_001', name: 'د. أحمد العتيبي', email: 'ahmed.alotaibi@example.com', organizationId: 'org_001', specialty: 'طب عام', status: AccountStatus.active, initials: 'أ ع'),
     const Doctor(id: 'doc_002', name: 'د. ليان السالم', email: 'lian.alsalem@example.com', organizationId: 'org_001', specialty: 'طب أطفال', status: AccountStatus.active, initials: 'ل س'),
     const Doctor(id: 'doc_003', name: 'د. عمر أبو زيد', email: 'omar.abouzaid@example.com', organizationId: 'org_002', specialty: 'جلدية', status: AccountStatus.active, initials: 'ع ز'),
+    const Doctor(id: 'doc_demo_001', name: 'Demo Doctor', email: demoEmail, organizationId: 'org_demo_001', specialty: 'General Medicine', status: AccountStatus.active, initials: 'D D'),
   ];
 
   final patients = <Patient>[
@@ -28,24 +33,34 @@ class MockMedicareStore {
     const Patient(id: 'pat_002', name: 'خالد محمد', email: 'khaled.mohamed@example.com', doctorId: 'doc_001', organizationId: 'org_001', status: AccountStatus.active, accountActivated: true, initials: 'خ م'),
     const Patient(id: 'pat_003', name: 'نورة علي', email: 'noura.ali@example.com', doctorId: 'doc_002', organizationId: 'org_001', status: AccountStatus.active, accountActivated: true, initials: 'ن ع'),
     const Patient(id: 'pat_004', name: 'ريم فهد', email: 'reem.fahad@example.com', doctorId: 'doc_003', organizationId: 'org_002', status: AccountStatus.active, accountActivated: true, initials: 'ر ف'),
+    const Patient(id: 'pat_demo_001', name: 'Demo Patient', email: demoEmail, doctorId: 'doc_demo_001', organizationId: 'org_demo_001', status: AccountStatus.active, accountActivated: true, initials: 'D P'),
   ];
 
   final invitations = <Invitation>[];
   final passwords = <String, String>{
     'org_001': 'medicare123',
     'org_002': 'medicare123',
+    'org_demo_001': demoPassword,
     'doc_001': 'medicare123',
     'doc_002': 'medicare123',
     'doc_003': 'medicare123',
+    'doc_demo_001': demoPassword,
     'pat_001': 'medicare123',
     'pat_002': 'medicare123',
     'pat_003': 'medicare123',
     'pat_004': 'medicare123',
+    'pat_demo_001': demoPassword,
   };
 
   AuthUser? findUser({required AccountRole role, required String email}) {
     final normalizedEmail = email.trim().toLowerCase();
     if (role == AccountRole.organization) {
+      if (normalizedEmail == demoEmail) {
+        final organization = organizations.where((item) => item.id == 'org_demo_001').firstOrNull;
+        if (organization != null && organization.status == AccountStatus.active) {
+          return AuthUser(id: organization.id, name: organization.name, email: organization.email, role: role, organizationId: organization.id);
+        }
+      }
       for (final organization in organizations) {
         if (organization.email.toLowerCase() == normalizedEmail && organization.status == AccountStatus.active) {
           return AuthUser(id: organization.id, name: organization.name, email: organization.email, role: role, organizationId: organization.id);
@@ -53,6 +68,12 @@ class MockMedicareStore {
       }
     }
     if (role == AccountRole.doctor) {
+      if (normalizedEmail == demoEmail) {
+        final doctor = doctors.where((item) => item.id == 'doc_demo_001').firstOrNull;
+        if (doctor != null && doctor.status == AccountStatus.active) {
+          return AuthUser(id: doctor.id, name: doctor.name, email: doctor.email, role: role, organizationId: doctor.organizationId, doctorId: doctor.id);
+        }
+      }
       for (final doctor in doctors) {
         if (doctor.email.toLowerCase() == normalizedEmail && doctor.status == AccountStatus.active) {
           return AuthUser(id: doctor.id, name: doctor.name, email: doctor.email, role: role, organizationId: doctor.organizationId, doctorId: doctor.id);
@@ -60,6 +81,12 @@ class MockMedicareStore {
       }
     }
     if (role == AccountRole.patient) {
+      if (normalizedEmail == demoEmail) {
+        final patient = patients.where((item) => item.id == 'pat_demo_001').firstOrNull;
+        if (patient != null && patient.accountActivated && patient.status == AccountStatus.active) {
+          return AuthUser(id: patient.id, name: patient.name, email: patient.email, role: role, organizationId: patient.organizationId, doctorId: patient.doctorId, patientId: patient.id);
+        }
+      }
       for (final patient in patients) {
         if (patient.email.toLowerCase() == normalizedEmail && patient.accountActivated && patient.status == AccountStatus.active) {
           return AuthUser(id: patient.id, name: patient.name, email: patient.email, role: role, organizationId: patient.organizationId, doctorId: patient.doctorId, patientId: patient.id);
