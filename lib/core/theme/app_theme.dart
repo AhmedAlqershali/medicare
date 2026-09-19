@@ -27,7 +27,7 @@ ThemeData buildAppTheme() {
   const textColor = AppColors.ink;
   final base = ThemeData.light(useMaterial3: true);
   return base.copyWith(
-    scaffoldBackgroundColor: Colors.red,
+    scaffoldBackgroundColor: AppColors.canvas,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: Colors.white,
