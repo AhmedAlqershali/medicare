@@ -20,7 +20,7 @@ void main() {
 
   test('patient account activation uses the exact email and activates only the matching record', () async {
     final doctor = MockMedicareStore.instance.doctors.first;
-    final patient = MockMedicareStore.instance.addPatient(doctorId: doctor.id, name: 'مريض تجريبي', email: 'patient.test@example.com', invitedBy: doctor.id);
+    final patient = MockMedicareStore.instance.addPatient(doctorId: doctor.id, name: 'مريض تجريبي', email: 'patient.test@example.com');
 
     expect(patient.accountActivated, isFalse);
 

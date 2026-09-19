@@ -37,10 +37,11 @@ class MockAuthRepository implements AuthRepository {
         if (patient != null && !patient.accountActivated) {
           return const AuthResult(success: false, message: 'هذا الحساب غير مفعّل بعد. استخدم تفعيل حساب المريض أولاً.');
         }
-      }
-      final invitation = _store.invitations.where((item) => item.role == role && item.email.toLowerCase() == normalizedEmail).firstOrNull;
-      if (invitation != null && invitation.status == InvitationStatus.pending) {
-        return const AuthResult(success: false, message: 'هذا الحساب مدعو، يرجى تفعيله أولاً.');
+      } else {
+        final invitation = _store.invitations.where((item) => item.role == role && item.email.toLowerCase() == normalizedEmail).firstOrNull;
+        if (invitation != null && invitation.status == InvitationStatus.pending) {
+          return const AuthResult(success: false, message: 'هذا الحساب مدعو، يرجى تفعيله أولاً.');
+        }
       }
       return const AuthResult(success: false, message: 'لم نجد حساباً نشطاً بهذا البريد لهذا الدور.');
     }

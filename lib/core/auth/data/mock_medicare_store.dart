@@ -135,7 +135,7 @@ class MockMedicareStore {
     return doctor;
   }
 
-  Patient addPatient({required String doctorId, required String name, required String email, required String invitedBy}) {
+  Patient addPatient({required String doctorId, required String name, required String email}) {
     final doctor = doctorById(doctorId)!;
     final id = 'pat_${(patients.length + 1).toString().padLeft(3, '0')}';
     final patient = Patient(id: id, name: name, email: email, doctorId: doctorId, organizationId: doctor.organizationId, status: AccountStatus.pending, accountActivated: false, initials: _initials(name));

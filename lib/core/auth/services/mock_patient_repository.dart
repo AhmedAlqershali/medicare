@@ -35,6 +35,6 @@ class MockPatientRepository implements PatientRepository {
     if (doctor == null || doctor.organizationId != _auth.session.organizationId) throw StateError('الطبيب أو المؤسسة غير موجودة.');
     if (doctor.status != AccountStatus.active) throw StateError('الطبيب غير نشط.');
     if (_store.patients.any((patient) => patient.email.toLowerCase() == email.trim().toLowerCase())) throw StateError('يوجد حساب بهذا البريد الإلكتروني.');
-    return _store.addPatient(doctorId: doctorId, name: name, email: email.trim(), invitedBy: invitedBy);
+    return _store.addPatient(doctorId: doctorId, name: name, email: email.trim());
   }
 }
