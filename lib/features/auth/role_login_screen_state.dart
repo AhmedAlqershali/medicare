@@ -57,7 +57,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
       };
 
   String get _createLabel => switch (widget.role) {
-        AccountRole.patient => 'تفعيل دعوة المريض',
+        AccountRole.patient => 'تفعيل حساب المريض',
         AccountRole.doctor => 'تفعيل دعوة الطبيب',
         AccountRole.organization => 'تسجيل المؤسسة',
       };

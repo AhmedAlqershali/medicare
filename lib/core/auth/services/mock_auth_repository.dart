@@ -31,6 +31,12 @@ class MockAuthRepository implements AuthRepository {
   Future<AuthResult> login({required AccountRole role, required String email, required String password}) async {
     final user = _store.findUser(role: role, email: email);
     if (user == null) {
+      if (role == AccountRole.patient) {
+        final patient = _store.patientByEmail(email);
+        if (patient != null && !patient.accountActivated) {
+          return const AuthResult(success: false, message: 'هذا الحساب غير مفعّل بعد. استخدم تفعيل حساب المريض أولاً.');
+        }
+      }
       final invitation = _store.invitations.where((item) => item.role == role && item.email.toLowerCase() == email.trim().toLowerCase()).firstOrNull;
       if (invitation != null && invitation.status == InvitationStatus.pending) {
         return const AuthResult(success: false, message: 'هذا الحساب مدعو، يرجى تفعيله أولاً.');
@@ -51,7 +57,7 @@ class MockAuthRepository implements AuthRepository {
     final organization = _store.organizationById(invitation.organizationId);
     if (organization == null) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.');
     if (organization.status != AccountStatus.active) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.');
-    if (role == AccountRole.patient && invitation.doctorId != null) {
+    if (role == AccountRole.doctor && invitation.doctorId != null) {
       final doctor = _store.doctorById(invitation.doctorId!);
       if (doctor == null) return const AuthResult(success: false, message: 'الطبيب المرتبط بالدعوة غير موجود.');
       if (doctor.status != AccountStatus.active) return const AuthResult(success: false, message: 'لا يمكن تفعيل الدعوة قبل تفعيل الطبيب.');
@@ -61,6 +67,36 @@ class MockAuthRepository implements AuthRepository {
     if (user == null) return const AuthResult(success: false, message: 'تعذر تفعيل الحساب المحلي.');
     _session = AuthSession(isAuthenticated: true, currentUser: user, currentRole: role, organizationId: user.organizationId, doctorId: user.doctorId, patientId: user.patientId);
     return AuthResult(success: true, message: 'تم تفعيل الحساب المحلي بنجاح.', session: _session);
+  }
+
+  @override
+  Future<AuthResult> activatePatientAccount({required String email, required String password}) async {
+    final normalizedEmail = email.trim();
+    if (normalizedEmail.isEmpty) return const AuthResult(success: false, message: 'أدخل البريد الإلكتروني الخاص بالمريض.');
+    if (password.length < 6) return const AuthResult(success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.');
+
+    final patient = _store.patientByEmail(normalizedEmail);
+    if (patient == null) {
+      return const AuthResult(success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني. استخدم نفس البريد الذي أضافه الطبيب.');
+    }
+    if (patient.accountActivated) {
+      return const AuthResult(success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.');
+    }
+
+    final doctor = _store.doctorById(patient.doctorId);
+    if (doctor == null) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير موجود.');
+    if (doctor.status != AccountStatus.active) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير نشط.');
+
+    final organization = _store.organizationById(patient.organizationId);
+    if (organization == null) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير موجودة.');
+    if (organization.status != AccountStatus.active) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير نشطة.');
+
+    _store.activatePatientAccount(patientId: patient.id, password: password);
+    final user = _store.findUser(role: AccountRole.patient, email: patient.email);
+    if (user == null) return const AuthResult(success: false, message: 'تعذر تفعيل حساب المريض في الجلسة المحلية.');
+
+    _session = AuthSession(isAuthenticated: true, currentUser: user, currentRole: AccountRole.patient, organizationId: user.organizationId, doctorId: user.doctorId, patientId: user.patientId);
+    return AuthResult(success: true, message: 'تم تفعيل حساب المريض بنجاح.', session: _session);
   }
 
   @override

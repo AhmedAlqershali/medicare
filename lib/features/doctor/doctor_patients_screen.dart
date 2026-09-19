@@ -17,7 +17,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  List<DoctorPatient> _visiblePatients() => MockPatientRepository.instance.patientsForDoctor(MockPatientRepository.instance.currentDoctorId ?? '').map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.status.name == 'active' ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
+  List<DoctorPatient> _visiblePatients() => MockPatientRepository.instance.patientsForDoctor(MockPatientRepository.instance.currentDoctorId ?? '').map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
 
   @override
   void dispose() { _searchController.dispose(); super.dispose(); }

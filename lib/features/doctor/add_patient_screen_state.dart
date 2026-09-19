@@ -36,7 +36,7 @@ class AddPatientScreenState extends State<AddPatientScreen> {
       _error = null;
     });
     try {
-      MockPatientRepository.instance.invitePatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: MockPatientRepository.instance.currentInviterId);
+      MockPatientRepository.instance.createPatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: MockPatientRepository.instance.currentInviterId);
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);
@@ -50,8 +50,8 @@ class AddPatientScreenState extends State<AddPatientScreen> {
   @override
   Widget build(BuildContext context) {
     if (_success) {
-      return Scaffold(appBar: AppBar(title: const Text('إضافة مريض')), body: SafeArea(child: Padding(padding: const EdgeInsets.all(AppSpacing.lg), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.mark_email_read_outlined, color: AppColors.success, size: 64), const SizedBox(height: AppSpacing.lg), Text('تمت إضافة المريض وإنشاء دعوة محلية معلقة.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: AppSpacing.sm), Text('لن يتم إرسال بريد فعلي في هذه المرحلة.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium), const SizedBox(height: AppSpacing.xl), PrimaryButton(label: 'العودة إلى المرضى', onPressed: () => Navigator.of(context).pop())]))));
+      return Scaffold(appBar: AppBar(title: const Text('إضافة مريض')), body: SafeArea(child: Padding(padding: const EdgeInsets.all(AppSpacing.lg), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 64), const SizedBox(height: AppSpacing.lg), Text('تمت إضافة المريض بنجاح.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: AppSpacing.sm), Text('يمكن للمريض تفعيل الحساب لاحقاً باستخدام نفس البريد الإلكتروني الذي تم إدخاله.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium), const SizedBox(height: AppSpacing.xl), PrimaryButton(label: 'العودة إلى المرضى', onPressed: () => Navigator.of(context).pop())]))));
     }
-    return AuthScaffold(showBack: true, title: 'إضافة مريض', subtitle: 'أضف المريض إلى قائمتك وأنشئ دعوة محلية', children: [CustomTextField(label: 'اسم المريض', prefixIcon: Icons.badge_outlined, controller: _nameController), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'البريد الإلكتروني الشخصي', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress), if (_error != null) ...[const SizedBox(height: AppSpacing.sm), Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700))], const SizedBox(height: AppSpacing.xl), PrimaryButton(label: 'إضافة وإرسال دعوة محلية', icon: Icons.person_add_alt_1_outlined, onPressed: _submit, isLoading: _loading)]);
+    return AuthScaffold(showBack: true, title: 'إضافة مريض', subtitle: 'أضف المريض إلى قائمة عيادتك، وسيتم تفعيله لاحقاً باستخدام البريد نفسه', children: [CustomTextField(label: 'اسم المريض', prefixIcon: Icons.badge_outlined, controller: _nameController), const SizedBox(height: AppSpacing.md), CustomTextField(label: 'البريد الإلكتروني الشخصي', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress), if (_error != null) ...[const SizedBox(height: AppSpacing.sm), Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700))], const SizedBox(height: AppSpacing.xl), PrimaryButton(label: 'إضافة المريض', icon: Icons.person_add_alt_1_outlined, onPressed: _submit, isLoading: _loading)]);
   }
 }

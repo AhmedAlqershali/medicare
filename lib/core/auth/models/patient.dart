@@ -8,6 +8,7 @@ class Patient {
     required this.doctorId,
     required this.organizationId,
     required this.status,
+    required this.accountActivated,
     required this.initials,
   });
 
@@ -17,5 +18,6 @@ class Patient {
   final String doctorId;
   final String organizationId;
   final AccountStatus status;
+  final bool accountActivated;
   final String initials;
 }

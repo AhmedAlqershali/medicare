@@ -24,10 +24,10 @@ class MockMedicareStore {
   ];
 
   final patients = <Patient>[
-    const Patient(id: 'pat_001', name: 'سارة أحمد', email: 'sara.ahmed@example.com', doctorId: 'doc_001', organizationId: 'org_001', status: AccountStatus.active, initials: 'س أ'),
-    const Patient(id: 'pat_002', name: 'خالد محمد', email: 'khaled.mohamed@example.com', doctorId: 'doc_001', organizationId: 'org_001', status: AccountStatus.active, initials: 'خ م'),
-    const Patient(id: 'pat_003', name: 'نورة علي', email: 'noura.ali@example.com', doctorId: 'doc_002', organizationId: 'org_001', status: AccountStatus.active, initials: 'ن ع'),
-    const Patient(id: 'pat_004', name: 'ريم فهد', email: 'reem.fahad@example.com', doctorId: 'doc_003', organizationId: 'org_002', status: AccountStatus.active, initials: 'ر ف'),
+    const Patient(id: 'pat_001', name: 'سارة أحمد', email: 'sara.ahmed@example.com', doctorId: 'doc_001', organizationId: 'org_001', status: AccountStatus.active, accountActivated: true, initials: 'س أ'),
+    const Patient(id: 'pat_002', name: 'خالد محمد', email: 'khaled.mohamed@example.com', doctorId: 'doc_001', organizationId: 'org_001', status: AccountStatus.active, accountActivated: true, initials: 'خ م'),
+    const Patient(id: 'pat_003', name: 'نورة علي', email: 'noura.ali@example.com', doctorId: 'doc_002', organizationId: 'org_001', status: AccountStatus.active, accountActivated: true, initials: 'ن ع'),
+    const Patient(id: 'pat_004', name: 'ريم فهد', email: 'reem.fahad@example.com', doctorId: 'doc_003', organizationId: 'org_002', status: AccountStatus.active, accountActivated: true, initials: 'ر ف'),
   ];
 
   final invitations = <Invitation>[];
@@ -61,7 +61,7 @@ class MockMedicareStore {
     }
     if (role == AccountRole.patient) {
       for (final patient in patients) {
-        if (patient.email.toLowerCase() == normalizedEmail && patient.status == AccountStatus.active) {
+        if (patient.email.toLowerCase() == normalizedEmail && patient.accountActivated && patient.status == AccountStatus.active) {
           return AuthUser(id: patient.id, name: patient.name, email: patient.email, role: role, organizationId: patient.organizationId, doctorId: patient.doctorId, patientId: patient.id);
         }
       }
@@ -72,6 +72,8 @@ class MockMedicareStore {
   Doctor? doctorById(String id) => doctors.where((doctor) => doctor.id == id).firstOrNull;
 
   Patient? patientById(String id) => patients.where((patient) => patient.id == id).firstOrNull;
+
+  Patient? patientByEmail(String email) => patients.where((patient) => patient.email.trim().toLowerCase() == email.trim().toLowerCase()).firstOrNull;
 
   Organization? organizationById(String id) => organizations.where((organization) => organization.id == id).firstOrNull;
 
@@ -86,16 +88,16 @@ class MockMedicareStore {
         passwords[doctor.id] = password;
       }
     }
-    if (invitation.role == AccountRole.patient && invitation.patientId != null) {
-      final index = patients.indexWhere((patient) => patient.id == invitation.patientId);
-      if (index != -1) {
-        final patient = patients[index];
-        patients[index] = Patient(id: patient.id, name: patient.name, email: patient.email, doctorId: patient.doctorId, organizationId: patient.organizationId, status: AccountStatus.active, initials: patient.initials);
-        passwords[patient.id] = password;
-      }
-    }
     final index = invitations.indexWhere((item) => item.id == invitation.id);
     if (index != -1) invitations[index] = invitation.copyWith(status: InvitationStatus.accepted);
+  }
+
+  void activatePatientAccount({required String patientId, required String password}) {
+    final index = patients.indexWhere((patient) => patient.id == patientId);
+    if (index == -1) return;
+    final patient = patients[index];
+    patients[index] = Patient(id: patient.id, name: patient.name, email: patient.email, doctorId: patient.doctorId, organizationId: patient.organizationId, status: AccountStatus.active, accountActivated: true, initials: patient.initials);
+    passwords[patient.id] = password;
   }
 
   Doctor addDoctor({required String organizationId, required String name, required String email, required String specialty, required String invitedBy}) {
@@ -109,9 +111,8 @@ class MockMedicareStore {
   Patient addPatient({required String doctorId, required String name, required String email, required String invitedBy}) {
     final doctor = doctorById(doctorId)!;
     final id = 'pat_${(patients.length + 1).toString().padLeft(3, '0')}';
-    final patient = Patient(id: id, name: name, email: email, doctorId: doctorId, organizationId: doctor.organizationId, status: AccountStatus.pending, initials: _initials(name));
+    final patient = Patient(id: id, name: name, email: email, doctorId: doctorId, organizationId: doctor.organizationId, status: AccountStatus.pending, accountActivated: false, initials: _initials(name));
     patients.add(patient);
-    invitations.add(Invitation(id: 'invite_pat_${invitations.length + 1}', email: email, role: AccountRole.patient, invitedBy: invitedBy, organizationId: doctor.organizationId, status: InvitationStatus.pending, patientId: id));
     return patient;
   }
 

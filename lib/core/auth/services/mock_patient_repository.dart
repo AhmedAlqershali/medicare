@@ -29,7 +29,7 @@ class MockPatientRepository implements PatientRepository {
   }
 
   @override
-  Patient invitePatient({required String doctorId, required String name, required String email, required String invitedBy}) {
+  Patient createPatient({required String doctorId, required String name, required String email, required String invitedBy}) {
     if (_auth.session.doctorId != doctorId) throw StateError('غير مصرح للطبيب الحالي بإضافة هذا المريض.');
     final doctor = _store.doctorById(doctorId);
     if (doctor == null || doctor.organizationId != _auth.session.organizationId) throw StateError('الطبيب أو المؤسسة غير موجودة.');
