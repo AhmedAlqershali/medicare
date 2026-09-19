@@ -3,6 +3,7 @@ import '../models/account_role.dart';
 import '../models/account_status.dart';
 import '../models/auth_result.dart';
 import '../models/auth_session.dart';
+import '../models/auth_user.dart';
 import '../models/invitation_status.dart';
 import '../repositories/auth_repository.dart';
 

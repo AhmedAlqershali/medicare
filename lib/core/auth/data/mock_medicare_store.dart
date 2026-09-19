@@ -117,7 +117,7 @@ class MockMedicareStore {
 
   String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
-    if (parts.length == 1) return parts.first.characters.first;
-    return '${parts.first.characters.first} ${parts.last.characters.first}';
+    if (parts.length == 1) return parts.first.substring(0, 1);
+    return '${parts.first.substring(0, 1)} ${parts.last.substring(0, 1)}';
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
-  const CustomTextField({super.key, required this.label, this.hintText, this.prefixIcon, this.controller, this.obscureText = false, this.keyboardType, this.onChanged, this.errorText, this.validator, this.textInputAction, this.autofillHints});
+  const CustomTextField({super.key, required this.label, this.hintText, this.prefixIcon, this.controller, this.obscureText = false, this.keyboardType, this.onChanged, this.onSubmitted, this.errorText, this.validator, this.textInputAction, this.autofillHints});
   final String label;
   final String? hintText;
   final IconData? prefixIcon;
@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final String? errorText;
   final FormFieldValidator<String>? validator;
   final TextInputAction? textInputAction;
@@ -23,6 +24,7 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,
         errorText: errorText,
         validator: validator,
         textInputAction: textInputAction,
@@ -31,7 +33,7 @@ class CustomTextField extends StatelessWidget {
 }
 
 class _TextField extends StatefulWidget {
-  const _TextField({required this.label, this.hintText, this.prefixIcon, this.controller, required this.obscureText, this.keyboardType, this.onChanged, this.errorText, this.validator, this.textInputAction, this.autofillHints});
+  const _TextField({required this.label, this.hintText, this.prefixIcon, this.controller, required this.obscureText, this.keyboardType, this.onChanged, this.onSubmitted, this.errorText, this.validator, this.textInputAction, this.autofillHints});
   final String label;
   final String? hintText;
   final IconData? prefixIcon;
@@ -39,6 +41,7 @@ class _TextField extends StatefulWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final String? errorText;
   final FormFieldValidator<String>? validator;
   final TextInputAction? textInputAction;
@@ -63,6 +66,7 @@ class _TextFieldState extends State<_TextField> {
         obscureText: _isObscured,
         keyboardType: widget.keyboardType,
         textInputAction: widget.textInputAction,
+        onFieldSubmitted: widget.onSubmitted,
         autofillHints: widget.autofillHints,
         onChanged: widget.onChanged,
         validator: widget.validator,
