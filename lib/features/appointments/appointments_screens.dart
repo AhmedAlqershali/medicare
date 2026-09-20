@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../clinics/clinics_screens.dart';
+import '../clinics/data/repositories/clinics_repository_impl.dart';
+import '../clinics/models/clinic_model.dart';
 import '../doctors/doctors_screens.dart';
 import 'appointment_booking_screens.dart';
 import 'data/repositories/appointments_repository_impl.dart';
