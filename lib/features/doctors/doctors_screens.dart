@@ -4,7 +4,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../appointments/appointment_booking_screens.dart';
 import '../appointments/models/appointment_booking_data.dart';
-import 'data/mock_doctors.dart';
+import 'data/repositories/doctors_repository_impl.dart';
+import 'domain/entities/doctor_entity.dart';
 import 'models/doctor_model.dart';
 
 part 'doctors_screens_doctors_list_screen_state.dart';

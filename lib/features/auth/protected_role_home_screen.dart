@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/routing/auth_navigation.dart';
 import '../doctor/doctor_home_screen.dart';
 import '../organization/organization_home_screen.dart';
 import '../patient/patient_home_screen.dart';
+import 'data/repositories/auth_repository_impl.dart';
 
 class ProtectedRoleHomeScreen extends StatelessWidget {
   const ProtectedRoleHomeScreen({super.key, required this.role});
@@ -14,8 +14,9 @@ class ProtectedRoleHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = FirebaseAuthRepository.instance.session;
-    if (!session.isAuthenticated || session.currentRole != role) {
+    final isAuthenticated = AuthRepositoryImpl.instance.isAuthenticated;
+    final currentRole = AuthRepositoryImpl.instance.currentRole;
+    if (!isAuthenticated || currentRole != role) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) AuthNavigation.openSignedOutFlow(context);
       });

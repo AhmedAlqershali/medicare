@@ -2,7 +2,41 @@ part of 'doctor_appointments_screen.dart';
 
 class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
   DoctorAppointmentFilter _selectedFilter = DoctorAppointmentFilter.today;
-  final List<DoctorAppointment> _appointments = List.of(doctorAppointments);
+  late List<DoctorAppointment> _appointments = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final appointments = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    if (!mounted) return;
+    setState(() {
+      _appointments = appointments.map(_toDoctorAppointment).toList();
+    });
+  }
+
+  DoctorAppointment _toDoctorAppointment(DoctorAppointmentEntity entity) => DoctorAppointment(
+        patientName: entity.patientName,
+        patientInitials: entity.patientInitials,
+        age: entity.age,
+        gender: entity.gender,
+        date: entity.date,
+        time: entity.time,
+        type: entity.type,
+        status: _toUiFilter(entity.status),
+        notes: entity.notes ?? '',
+        avatarColor: Color(entity.avatarColorValue),
+      );
+
+  DoctorAppointmentFilter _toUiFilter(DoctorAppointmentEntityFilter status) => switch (status) {
+        DoctorAppointmentEntityFilter.today => DoctorAppointmentFilter.today,
+        DoctorAppointmentEntityFilter.upcoming => DoctorAppointmentFilter.upcoming,
+        DoctorAppointmentEntityFilter.completed => DoctorAppointmentFilter.completed,
+        DoctorAppointmentEntityFilter.cancelled => DoctorAppointmentFilter.cancelled,
+      };
 
   @override
   Widget build(BuildContext context) {

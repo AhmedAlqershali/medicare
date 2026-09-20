@@ -4,8 +4,46 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
   final _searchController = TextEditingController();
   String _selectedCategory = 'الكل';
   String _searchQuery = '';
+  late List<ClinicData> _clinics = const [];
 
   static const _categories = ['الكل', 'عيادات عامة', 'أسنان', 'أطفال', 'قلب', 'جلدية', 'نسائية', 'عظام'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClinics();
+  }
+
+  Future<void> _loadClinics() async {
+    final clinics = await const ClinicsRepositoryImpl().getClinics();
+    if (!mounted) return;
+    setState(() {
+      _clinics = clinics.map(_toClinicData).toList();
+    });
+  }
+
+  ClinicData _toClinicData(ClinicEntity entity) => ClinicData(
+        name: entity.name,
+        category: entity.category,
+        location: entity.location,
+        description: entity.description,
+        hours: entity.hours,
+        specialties: List<String>.from(entity.specialties),
+        status: entity.status,
+        icon: IconData(entity.iconCodePoint, fontFamily: 'MaterialIcons'),
+        color: Color(entity.colorValue),
+        doctors: entity.doctors.map((doctor) => ClinicDoctorData(
+          initials: doctor.initials,
+          name: doctor.name,
+          specialty: doctor.specialty,
+          rating: doctor.rating,
+          reviews: doctor.reviews,
+          experience: doctor.experience,
+          bio: doctor.bio,
+          services: List<String>.from(doctor.services),
+          color: Color(doctor.colorValue),
+        )).toList(),
+      );
 
   @override
   void dispose() {
@@ -13,7 +51,7 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
     super.dispose();
   }
 
-  List<ClinicData> get _filteredClinics => clinics.where((clinic) {
+  List<ClinicData> get _filteredClinics => _clinics.where((clinic) {
         final matchesCategory = _selectedCategory == 'الكل' || clinic.category == _selectedCategory;
         final query = _searchQuery.trim();
         final matchesSearch = query.isEmpty || clinic.name.contains(query) || clinic.category.contains(query) || clinic.location.contains(query);

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/routing/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
+import 'data/repositories/auth_repository_impl.dart';
 import 'invitation_activation_screen.dart';
 
 class InvitationActivationScreenState extends State<InvitationActivationScreen> {
@@ -33,8 +33,8 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
       _loading = true;
     });
     final result = widget.role == AccountRole.patient
-        ? await FirebaseAuthRepository.instance.activatePatientAccount(email: email, password: password)
-        : await FirebaseAuthRepository.instance.activateInvitation(role: widget.role, email: email, password: password);
+        ? await AuthRepositoryImpl.instance.activatePatientAccount(email: email, password: password)
+        : await AuthRepositoryImpl.instance.activateInvitation(role: widget.role, email: email, password: password);
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {

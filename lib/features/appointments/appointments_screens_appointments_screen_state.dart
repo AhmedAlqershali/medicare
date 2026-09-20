@@ -2,9 +2,43 @@ part of 'appointments_screens.dart';
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   AppointmentStatus _selectedStatus = AppointmentStatus.upcoming;
-  final List<MockAppointment> _appointments = List.of(mockAppointments);
+  late List<MockAppointment> _appointments = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final appointments = await const AppointmentsRepositoryImpl().getAppointments();
+    if (!mounted) return;
+    setState(() {
+      _appointments = appointments.map(_toMockAppointment).toList();
+    });
+  }
 
   List<MockAppointment> get _visibleAppointments => _appointments.where((appointment) => appointment.status == _selectedStatus).toList();
+
+  MockAppointment _toMockAppointment(AppointmentEntity entity) => MockAppointment(
+        doctorName: entity.doctorName,
+        doctorInitials: entity.doctorInitials,
+        specialty: entity.specialty,
+        clinicName: entity.clinicName,
+        location: entity.location,
+        date: entity.date,
+        time: entity.time,
+        type: entity.type,
+        status: _toUiStatus(entity.status),
+        avatarColor: Color(entity.avatarColorValue),
+        notes: entity.notes,
+      );
+
+  AppointmentStatus _toUiStatus(AppointmentEntityStatus status) => switch (status) {
+        AppointmentEntityStatus.upcoming => AppointmentStatus.upcoming,
+        AppointmentEntityStatus.completed => AppointmentStatus.completed,
+        AppointmentEntityStatus.cancelled => AppointmentStatus.cancelled,
+      };
 
   AppointmentBookingData _bookingData(MockAppointment appointment) => AppointmentBookingData(
         doctorName: appointment.doctorName,

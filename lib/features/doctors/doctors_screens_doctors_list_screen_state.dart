@@ -4,8 +4,37 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   final _searchController = TextEditingController();
   String _selectedSpecialty = 'الكل';
   String _searchQuery = '';
+  late List<DoctorData> _doctors = const [];
 
   static const _specialties = ['الكل', 'طب عام', 'أطفال', 'أسنان', 'قلب', 'جلدية', 'نسائية', 'عظام'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+  }
+
+  Future<void> _loadDoctors() async {
+    final doctors = await const DoctorsRepositoryImpl().getDoctors();
+    if (!mounted) return;
+    setState(() {
+      _doctors = doctors.map(_toDoctorData).toList();
+    });
+  }
+
+  DoctorData _toDoctorData(DoctorEntity entity) => DoctorData(
+        initials: entity.initials,
+        name: entity.name,
+        specialty: entity.specialty,
+        clinic: entity.clinic,
+        location: entity.location,
+        rating: entity.rating,
+        reviews: entity.reviews,
+        experience: entity.experience,
+        bio: entity.bio,
+        services: List<String>.from(entity.services),
+        color: Color(entity.colorValue),
+      );
 
   @override
   void dispose() {
@@ -13,7 +42,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     super.dispose();
   }
 
-  List<DoctorData> get _filteredDoctors => doctors.where((doctor) {
+  List<DoctorData> get _filteredDoctors => _doctors.where((doctor) {
         final matchesSpecialty = _selectedSpecialty == 'الكل' || doctor.specialty == _selectedSpecialty;
         final query = _searchQuery.trim();
         final matchesSearch = query.isEmpty || doctor.name.contains(query) || doctor.specialty.contains(query) || doctor.clinic.contains(query);

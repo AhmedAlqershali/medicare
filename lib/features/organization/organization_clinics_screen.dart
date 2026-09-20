@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import 'data/mock_organization_clinics.dart';
+import 'data/repositories/organization_clinics_repository_impl.dart';
+import 'domain/entities/organization_clinic_entity.dart';
 import 'models/organization_clinic.dart';
 
 part 'organization_clinics_screen_organization_clinics_screen_state.dart';

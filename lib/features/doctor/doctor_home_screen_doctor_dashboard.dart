@@ -1,8 +1,45 @@
 part of 'doctor_home_screen.dart';
 
-class _DoctorDashboard extends StatelessWidget {
+class _DoctorDashboard extends StatefulWidget {
   const _DoctorDashboard({required this.onTabSelected});
   final ValueChanged<int> onTabSelected;
+
+  @override
+  State<_DoctorDashboard> createState() => _DoctorDashboardState();
+}
+
+class _DoctorDashboardState extends State<_DoctorDashboard> {
+  List<DoctorAppointment> _appointments = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final items = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    if (!mounted) return;
+    setState(() {
+      _appointments = items.map((item) => DoctorAppointment(
+        patientName: item.patientName,
+        patientInitials: item.patientInitials,
+        age: item.age,
+        gender: item.gender,
+        date: item.date,
+        time: item.time,
+        type: item.type,
+        status: switch (item.status) {
+          DoctorAppointmentEntityFilter.today => DoctorAppointmentFilter.today,
+          DoctorAppointmentEntityFilter.upcoming => DoctorAppointmentFilter.upcoming,
+          DoctorAppointmentEntityFilter.completed => DoctorAppointmentFilter.completed,
+          DoctorAppointmentEntityFilter.cancelled => DoctorAppointmentFilter.cancelled,
+        },
+        notes: item.notes ?? '',
+        avatarColor: Color(item.avatarColorValue),
+      )).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) => CustomScrollView(
@@ -26,16 +63,16 @@ class _DoctorDashboard extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               const _OverviewGrid(),
               const SizedBox(height: AppSpacing.xl),
-              SectionHeader(title: 'مواعيد اليوم', actionLabel: 'عرض الكل', onAction: () => onTabSelected(1)),
+              SectionHeader(title: 'مواعيد اليوم', actionLabel: 'عرض الكل', onAction: () => widget.onTabSelected(1)),
               const SizedBox(height: AppSpacing.sm),
-              for (final appointment in doctorAppointments.take(3)) ...[
+              for (final appointment in _appointments.take(3)) ...[
                 _DashboardAppointmentCard(appointment: appointment, onDetails: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorAppointmentDetailsScreen(appointment: appointment)))),
                 const SizedBox(height: AppSpacing.sm),
               ],
               const SizedBox(height: AppSpacing.md),
               Text('إجراءات سريعة', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
-              _QuickActions(onTabSelected: onTabSelected),
+              _QuickActions(onTabSelected: widget.onTabSelected),
             ])),
           ),
         ],

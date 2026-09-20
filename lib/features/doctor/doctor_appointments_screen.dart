@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import 'data/mock_doctor_appointments.dart';
+import 'data/repositories/doctor_appointments_repository_impl.dart';
+import 'domain/entities/doctor_appointment_entity.dart';
 import 'models/doctor_appointment.dart';
 
 part 'doctor_appointments_screen_doctor_appointments_screen_state.dart';

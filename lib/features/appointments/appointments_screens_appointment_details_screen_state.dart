@@ -111,9 +111,32 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
 
   void _openDoctor(MockAppointment appointment) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorDetailsScreen.preview(initials: appointment.doctorInitials, name: appointment.doctorName, specialty: appointment.specialty, clinic: appointment.clinicName, location: appointment.location, rating: '٤.٨', reviews: '٩٦', experience: 9, bio: 'رعاية طبية متخصصة بخطة واضحة واهتمام باحتياجات كل مراجع.', services: const ['الفحوصات العامة', 'الاستشارات', 'المتابعة'], color: appointment.avatarColor)));
 
-  void _openClinic(MockAppointment appointment) {
+  void _openClinic(MockAppointment appointment) async {
+    final clinics = await const ClinicsRepositoryImpl().getClinics();
     final clinic = clinics.where((item) => item.name == appointment.clinicName).firstOrNull;
-    if (clinic != null) Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ClinicDetailsScreen(clinic: clinic)));
+    if (clinic == null || !mounted) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ClinicDetailsScreen(clinic: ClinicData(
+      name: clinic.name,
+      category: clinic.category,
+      location: clinic.location,
+      description: clinic.description,
+      hours: clinic.hours,
+      specialties: List<String>.from(clinic.specialties),
+      status: clinic.status,
+      icon: IconData(clinic.iconCodePoint, fontFamily: 'MaterialIcons'),
+      color: Color(clinic.colorValue),
+      doctors: clinic.doctors.map((doctor) => ClinicDoctorData(
+        initials: doctor.initials,
+        name: doctor.name,
+        specialty: doctor.specialty,
+        rating: doctor.rating,
+        reviews: doctor.reviews,
+        experience: doctor.experience,
+        bio: doctor.bio,
+        services: List<String>.from(doctor.services),
+        color: Color(doctor.colorValue),
+      )).toList(),
+    ))));
   }
 
   void _confirmCancellation() {

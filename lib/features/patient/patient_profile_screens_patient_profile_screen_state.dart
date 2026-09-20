@@ -1,7 +1,27 @@
 part of 'patient_profile_screens.dart';
 
 class _PatientProfileScreenState extends State<PatientProfileScreen> {
-  var _patient = mockPatientProfile;
+  var _patient = const PatientProfile(name: '', phone: '', email: '', birthDate: '', gender: '');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await const PatientProfileRepositoryImpl().getPatientProfile();
+    if (!mounted) return;
+    setState(() {
+      _patient = PatientProfile(
+        name: profile.name,
+        phone: profile.phone,
+        email: profile.email,
+        birthDate: profile.birthDate,
+        gender: profile.gender,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(

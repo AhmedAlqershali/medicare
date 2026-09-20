@@ -5,7 +5,8 @@ import '../../core/widgets/medicare_widgets.dart';
 import '../appointments/appointment_booking_screens.dart';
 import '../appointments/models/appointment_booking_data.dart';
 import '../doctors/doctors_screens.dart';
-import 'data/mock_clinics.dart';
+import 'data/repositories/clinics_repository_impl.dart';
+import 'domain/entities/clinic_entity.dart';
 import 'models/clinic_model.dart';
 
 part 'clinics_screens_clinics_list_screen_state.dart';

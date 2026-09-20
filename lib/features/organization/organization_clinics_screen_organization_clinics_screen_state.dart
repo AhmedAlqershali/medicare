@@ -3,7 +3,34 @@ part of 'organization_clinics_screen.dart';
 class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  final List<OrganizationClinic> _clinics = List.of(mockOrganizationClinics);
+  late List<OrganizationClinic> _clinics = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClinics();
+  }
+
+  Future<void> _loadClinics() async {
+    final clinics = await const OrganizationClinicsRepositoryImpl().getOrganizationClinics();
+    if (!mounted) return;
+    setState(() {
+      _clinics = clinics.map((clinic) => OrganizationClinic(
+        id: clinic.id,
+        name: clinic.name,
+        location: clinic.location,
+        phone: clinic.phone,
+        description: clinic.description,
+        status: clinic.status,
+        doctorsCount: clinic.doctorsCount,
+        departmentsCount: clinic.departmentsCount,
+        patientsCount: clinic.patientsCount,
+        icon: IconData(clinic.iconCodePoint, fontFamily: 'MaterialIcons'),
+        color: Color(clinic.colorValue),
+        departments: List<String>.from(clinic.departments),
+      )).toList();
+    });
+  }
 
   List<OrganizationClinic> get _filteredClinics => _clinics.where((clinic) {
     final query = _query.trim();

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/routing/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'account_type_selection_screen.dart';
+import 'data/repositories/auth_repository_impl.dart';
 import 'medicare_entry_screen.dart';
 import 'models/auth_flow_stage.dart';
 import 'role_login_screen.dart';
@@ -31,9 +31,12 @@ class MedicareEntryScreenState extends State<MedicareEntryScreen> {
 
   void _finishSplash() {
     if (!mounted) return;
-    if (FirebaseAuthRepository.instance.isAuthenticated) {
-      AuthNavigation.openRoleHome(context, FirebaseAuthRepository.instance.session.currentRole!);
-      return;
+    if (AuthRepositoryImpl.instance.isAuthenticated) {
+      final role = AuthRepositoryImpl.instance.currentRole;
+      if (role != null) {
+        AuthNavigation.openRoleHome(context, role);
+        return;
+      }
     }
     setState(() => _stage = AuthFlowStage.onboarding);
   }

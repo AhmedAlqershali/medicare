@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/demo/demo_account_config.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/routing/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
+import 'data/repositories/auth_repository_impl.dart';
 import 'invitation_activation_screen.dart';
 import 'role_login_screen.dart';
 
@@ -50,7 +50,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
       _loading = true;
       _error = null;
     });
-    final result = await FirebaseAuthRepository.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
+    final result = await AuthRepositoryImpl.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {

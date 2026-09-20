@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import 'data/mock_patient_profile.dart';
+import 'data/repositories/patient_profile_repository_impl.dart';
+import 'domain/entities/patient_profile.dart';
 import 'models/patient_profile.dart';
 
 part 'patient_profile_screens_patient_profile_screen_state.dart';
