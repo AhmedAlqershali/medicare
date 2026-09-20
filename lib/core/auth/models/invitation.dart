@@ -32,4 +32,32 @@ class Invitation {
         doctorId: doctorId,
         patientId: patientId,
       );
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'email': email,
+        'role': role.name,
+        'invitedBy': invitedBy,
+        'organizationId': organizationId,
+        'status': status.name,
+        'doctorId': doctorId,
+        'patientId': patientId,
+      };
+
+  static Invitation fromMap(Map<String, dynamic> map) => Invitation(
+        id: map['id'] as String? ?? '',
+        email: map['email'] as String? ?? '',
+        role: AccountRole.values.firstWhere(
+          (item) => item.name == (map['role'] as String? ?? AccountRole.patient.name),
+          orElse: () => AccountRole.patient,
+        ),
+        invitedBy: map['invitedBy'] as String? ?? '',
+        organizationId: map['organizationId'] as String? ?? '',
+        status: InvitationStatus.values.firstWhere(
+          (item) => item.name == (map['status'] as String? ?? InvitationStatus.pending.name),
+          orElse: () => InvitationStatus.pending,
+        ),
+        doctorId: map['doctorId'] as String?,
+        patientId: map['patientId'] as String?,
+      );
 }
