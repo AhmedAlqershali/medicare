@@ -1,15 +1,17 @@
 import '../data/mock_medicare_store.dart';
+import '../firestore/repositories/firestore_organization_repository.dart';
 import '../models/organization.dart';
 import '../repositories/organization_repository.dart';
 import 'mock_auth_repository.dart';
 
 class MockOrganizationRepository implements OrganizationRepository {
-  MockOrganizationRepository._(this._store, this._auth);
+  MockOrganizationRepository._(this._store, this._auth, this._firestoreOrganizationRepository);
 
-  static final instance = MockOrganizationRepository._(MockMedicareStore.instance, MockAuthRepository.instance);
+  static final instance = MockOrganizationRepository._(MockMedicareStore.instance, MockAuthRepository.instance, FirestoreOrganizationRepository.instance);
 
   final MockMedicareStore _store;
   final MockAuthRepository _auth;
+  final FirestoreOrganizationRepository _firestoreOrganizationRepository;
 
   @override
   Organization? get currentOrganization {

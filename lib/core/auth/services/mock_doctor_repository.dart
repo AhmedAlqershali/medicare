@@ -1,16 +1,18 @@
 import '../data/mock_medicare_store.dart';
+import '../firestore/repositories/firestore_doctor_repository.dart';
 import '../models/account_status.dart';
 import '../models/doctor.dart';
 import '../repositories/doctor_repository.dart';
 import 'mock_auth_repository.dart';
 
 class MockDoctorRepository implements DoctorRepository {
-  MockDoctorRepository._(this._store, this._auth);
+  MockDoctorRepository._(this._store, this._auth, this._firestoreDoctorRepository);
 
-  static final instance = MockDoctorRepository._(MockMedicareStore.instance, MockAuthRepository.instance);
+  static final instance = MockDoctorRepository._(MockMedicareStore.instance, MockAuthRepository.instance, FirestoreDoctorRepository.instance);
 
   final MockMedicareStore _store;
   final MockAuthRepository _auth;
+  final FirestoreDoctorRepository _firestoreDoctorRepository;
 
   String? get currentOrganizationId => _auth.session.organizationId;
 
@@ -33,6 +35,8 @@ class MockDoctorRepository implements DoctorRepository {
     if (_auth.session.organizationId != organizationId) throw StateError('غير مصرح للمؤسسة الحالية بإضافة هذا الطبيب.');
     if (_store.organizationById(organizationId)?.status != AccountStatus.active) throw StateError('المؤسسة غير نشطة.');
     if (_store.doctors.any((doctor) => doctor.email.toLowerCase() == email.trim().toLowerCase())) throw StateError('يوجد حساب بهذا البريد الإلكتروني.');
-    return _store.addDoctor(organizationId: organizationId, name: name, email: email.trim(), specialty: specialty, invitedBy: invitedBy);
+    final created = _store.addDoctor(organizationId: organizationId, name: name, email: email.trim(), specialty: specialty, invitedBy: invitedBy);
+    _firestoreDoctorRepository.inviteDoctor(organizationId: organizationId, name: name, email: email.trim(), specialty: specialty, invitedBy: invitedBy);
+    return created;
   }
 }

@@ -10,6 +10,9 @@ class Patient {
     required this.status,
     required this.accountActivated,
     required this.initials,
+    this.firebaseUid,
+    this.createdAt,
+    this.updatedAt,
   });
 
   final String id;
@@ -20,17 +23,26 @@ class Patient {
   final AccountStatus status;
   final bool accountActivated;
   final String initials;
+  final String? firebaseUid;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'doctorId': doctorId,
-        'organizationId': organizationId,
-        'status': status.name,
-        'accountActivated': accountActivated,
-        'initials': initials,
-      };
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{
+      'id': id,
+      'name': name,
+      'email': email,
+      'doctorId': doctorId,
+      'organizationId': organizationId,
+      'status': status.name,
+      'accountActivated': accountActivated,
+      'initials': initials,
+    };
+    if (firebaseUid != null) map['firebaseUid'] = firebaseUid;
+    if (createdAt != null) map['createdAt'] = createdAt!.toUtc().toIso8601String();
+    if (updatedAt != null) map['updatedAt'] = updatedAt!.toUtc().toIso8601String();
+    return map;
+  }
 
   static Patient fromMap(Map<String, dynamic> map) => Patient(
         id: map['id'] as String? ?? '',
@@ -44,5 +56,8 @@ class Patient {
         ),
         accountActivated: map['accountActivated'] as bool? ?? false,
         initials: map['initials'] as String? ?? '',
+        firebaseUid: map['firebaseUid'] as String?,
+        createdAt: map['createdAt'] is String ? DateTime.tryParse(map['createdAt'] as String) : null,
+        updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt'] as String) : null,
       );
 }
