@@ -14,29 +14,9 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
     final appointments = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
     if (!mounted) return;
     setState(() {
-      _appointments = appointments.map(_toDoctorAppointment).toList();
+      _appointments = appointments;
     });
   }
-
-  DoctorAppointment _toDoctorAppointment(DoctorAppointmentEntity entity) => DoctorAppointment(
-        patientName: entity.patientName,
-        patientInitials: entity.patientInitials,
-        age: entity.age,
-        gender: entity.gender,
-        date: entity.date,
-        time: entity.time,
-        type: entity.type,
-        status: _toUiFilter(entity.status),
-        notes: entity.notes ?? '',
-        avatarColor: Color(entity.avatarColorValue),
-      );
-
-  DoctorAppointmentFilter _toUiFilter(DoctorAppointmentEntityFilter status) => switch (status) {
-        DoctorAppointmentEntityFilter.today => DoctorAppointmentFilter.today,
-        DoctorAppointmentEntityFilter.upcoming => DoctorAppointmentFilter.upcoming,
-        DoctorAppointmentEntityFilter.completed => DoctorAppointmentFilter.completed,
-        DoctorAppointmentEntityFilter.cancelled => DoctorAppointmentFilter.cancelled,
-      };
 
   @override
   Widget build(BuildContext context) {

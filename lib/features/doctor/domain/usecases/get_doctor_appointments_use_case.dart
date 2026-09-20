@@ -1,4 +1,4 @@
-import '../entities/doctor_appointment_entity.dart';
+import '../../models/doctor_appointment.dart';
 import '../repositories/doctor_appointments_repository.dart';
 
 class GetDoctorAppointmentsUseCase {
@@ -6,5 +6,5 @@ class GetDoctorAppointmentsUseCase {
 
   final DoctorAppointmentsRepository repository;
 
-  Future<List<DoctorAppointmentEntity>> call() => repository.getDoctorAppointments();
+  Future<List<DoctorAppointment>> call() => repository.getDoctorAppointments();
 }

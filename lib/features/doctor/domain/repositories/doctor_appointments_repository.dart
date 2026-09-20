@@ -1,5 +1,5 @@
-import '../entities/doctor_appointment_entity.dart';
+import '../../models/doctor_appointment.dart';
 
 abstract class DoctorAppointmentsRepository {
-  Future<List<DoctorAppointmentEntity>> getDoctorAppointments();
+  Future<List<DoctorAppointment>> getDoctorAppointments();
 }

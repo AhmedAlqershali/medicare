@@ -21,27 +21,9 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
     final items = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
     if (!mounted) return;
     setState(() {
-      _appointments = items.map((item) => DoctorAppointment(
-        patientName: item.patientName,
-        patientInitials: item.patientInitials,
-        age: item.age,
-        gender: item.gender,
-        date: item.date,
-        time: item.time,
-        type: item.type,
-        status: _mapAppointmentStatus(item.status),
-        notes: item.notes ?? '',
-        avatarColor: Color(item.avatarColorValue),
-      )).toList();
+      _appointments = items;
     });
   }
-
-  DoctorAppointmentFilter _mapAppointmentStatus(DoctorAppointmentEntityFilter status) => switch (status) {
-    DoctorAppointmentEntityFilter.today => DoctorAppointmentFilter.today,
-    DoctorAppointmentEntityFilter.upcoming => DoctorAppointmentFilter.upcoming,
-    DoctorAppointmentEntityFilter.completed => DoctorAppointmentFilter.completed,
-    DoctorAppointmentEntityFilter.cancelled => DoctorAppointmentFilter.cancelled,
-  };
 
   @override
   Widget build(BuildContext context) => CustomScrollView(
