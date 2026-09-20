@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../auth/models/account_status.dart';
 import '../../auth/models/patient.dart';
 import '../../auth/repositories/patient_repository.dart';

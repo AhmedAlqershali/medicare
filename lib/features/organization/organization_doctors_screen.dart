@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/auth/models/account_status.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/firestore/repositories/firestore_doctor_repository.dart';
 import '../../core/firestore/repositories/firestore_organization_repository.dart';
 import '../../core/theme/app_theme.dart';
