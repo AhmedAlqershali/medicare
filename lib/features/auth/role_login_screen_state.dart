@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/auth/demo/demo_account_config.dart';
 import '../../core/auth/models/account_role.dart';
 import '../../core/routing/auth_navigation.dart';
+import '../../core/services/demo_account_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
@@ -26,7 +26,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   void _applyDemoAccount(AccountRole role) {
-    final account = DemoAccountConfig.accountForRole(role);
+    final account = DemoAccountService.accountForRole(role);
     _selectedDemoRole = role;
     _emailController.text = account.email;
     _passwordController.text = account.password;
@@ -34,8 +34,8 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   Future<void> _ensureDemoAccounts() async {
-    if (!DemoAccountConfig.isDebugOnly) return;
-    final message = await DemoAccountConfig.ensureDemoAccounts();
+    if (!DemoAccountService.isDebugOnly) return;
+    final message = await DemoAccountService.ensureDemoAccounts();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
@@ -82,7 +82,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final demoAvailable = kDebugMode && DemoAccountConfig.isConfigured;
+    final demoAvailable = kDebugMode && DemoAccountService.isConfigured;
     return AuthScaffold(
       showBack: true,
       title: _title,
