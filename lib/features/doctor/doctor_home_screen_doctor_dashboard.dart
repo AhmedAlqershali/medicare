@@ -18,7 +18,7 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
   }
 
   Future<void> _loadAppointments() async {
-    final items = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    final items = await DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
     if (!mounted) return;
     setState(() {
       _appointments = items;

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
+import 'data/repositories/doctor_appointments_repository_impl.dart';
 import 'doctor_appointments_screen.dart';
 import 'doctor_patients_screen.dart';
 import 'doctor_profile_screens.dart';
+import 'models/doctor_appointment.dart';
 
 part 'doctor_home_screen_doctor_home_screen_state.dart';
 part 'doctor_home_screen_doctor_dashboard.dart';
