@@ -1,12 +1,12 @@
 part of 'appointments_screens.dart';
 
-IconData _clinicIcon(int codePoint) => switch (codePoint) {
-      Icons.local_hospital_outlined.codePoint => Icons.local_hospital_outlined,
-      Icons.family_restroom_outlined.codePoint => Icons.family_restroom_outlined,
-      Icons.health_and_safety_outlined.codePoint => Icons.health_and_safety_outlined,
-      Icons.favorite_border_rounded.codePoint => Icons.favorite_border_rounded,
-      _ => Icons.local_hospital_outlined,
-    };
+IconData _clinicIcon(int codePoint) {
+  if (codePoint == Icons.local_hospital_outlined.codePoint) return Icons.local_hospital_outlined;
+  if (codePoint == Icons.family_restroom_outlined.codePoint) return Icons.family_restroom_outlined;
+  if (codePoint == Icons.health_and_safety_outlined.codePoint) return Icons.health_and_safety_outlined;
+  if (codePoint == Icons.favorite_border_rounded.codePoint) return Icons.favorite_border_rounded;
+  return Icons.local_hospital_outlined;
+}
 
 ({String label, Color color}) _statusDetails(AppointmentStatus status) {
   switch (status) {
