@@ -1,5 +1,13 @@
 part of 'appointments_screens.dart';
 
+IconData _clinicIcon(int codePoint) => switch (codePoint) {
+      Icons.local_hospital_outlined.codePoint => Icons.local_hospital_outlined,
+      Icons.family_restroom_outlined.codePoint => Icons.family_restroom_outlined,
+      Icons.health_and_safety_outlined.codePoint => Icons.health_and_safety_outlined,
+      Icons.favorite_border_rounded.codePoint => Icons.favorite_border_rounded,
+      _ => Icons.local_hospital_outlined,
+    };
+
 ({String label, Color color}) _statusDetails(AppointmentStatus status) {
   switch (status) {
     case AppointmentStatus.upcoming:
@@ -123,7 +131,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       hours: clinic.hours,
       specialties: List<String>.from(clinic.specialties),
       status: clinic.status,
-      icon: IconData(clinic.iconCodePoint, fontFamily: 'MaterialIcons'),
+      icon: _clinicIcon(clinic.iconCodePoint),
       color: Color(clinic.colorValue),
       doctors: clinic.doctors.map((doctor) => ClinicDoctorData(
         initials: doctor.initials,
