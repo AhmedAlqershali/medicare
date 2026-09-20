@@ -15,7 +15,7 @@ class ClinicsRepositoryImpl implements ClinicsRepository {
       hours: clinic.hours,
       specialties: List<String>.from(clinic.specialties),
       status: clinic.status,
-      iconCodePoint: clinic.icon.codePoint,
+      icon: clinic.icon,
       colorValue: clinic.color.value,
       doctors: clinic.doctors.map((doctor) => ClinicDoctorEntity(
         initials: doctor.initials,

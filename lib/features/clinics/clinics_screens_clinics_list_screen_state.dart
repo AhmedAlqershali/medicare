@@ -1,13 +1,5 @@
 part of 'clinics_screens.dart';
 
-IconData _clinicIcon(int codePoint) {
-  if (codePoint == Icons.local_hospital_outlined.codePoint) return Icons.local_hospital_outlined;
-  if (codePoint == Icons.family_restroom_outlined.codePoint) return Icons.family_restroom_outlined;
-  if (codePoint == Icons.health_and_safety_outlined.codePoint) return Icons.health_and_safety_outlined;
-  if (codePoint == Icons.favorite_border_rounded.codePoint) return Icons.favorite_border_rounded;
-  return Icons.local_hospital_outlined;
-}
-
 class _ClinicsListScreenState extends State<ClinicsListScreen> {
   final _searchController = TextEditingController();
   String _selectedCategory = 'الكل';
@@ -38,7 +30,7 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
         hours: entity.hours,
         specialties: List<String>.from(entity.specialties),
         status: entity.status,
-        icon: _clinicIcon(entity.iconCodePoint),
+        icon: entity.icon,
         color: Color(entity.colorValue),
         doctors: entity.doctors.map((doctor) => ClinicDoctorData(
           initials: doctor.initials,

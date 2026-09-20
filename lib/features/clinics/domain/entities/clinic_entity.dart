@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ClinicEntity {
   const ClinicEntity({
     required this.name,
@@ -7,7 +9,7 @@ class ClinicEntity {
     required this.hours,
     required this.specialties,
     required this.status,
-    required this.iconCodePoint,
+    required this.icon,
     required this.colorValue,
     required this.doctors,
   });
@@ -19,7 +21,7 @@ class ClinicEntity {
   final String hours;
   final List<String> specialties;
   final String status;
-  final int iconCodePoint;
+  final IconData icon;
   final int colorValue;
   final List<ClinicDoctorEntity> doctors;
 }
