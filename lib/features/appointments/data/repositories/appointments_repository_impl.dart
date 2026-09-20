@@ -1,5 +1,5 @@
-import '../../../features/appointments/data/mock_appointments.dart';
-import '../../../features/appointments/models/appointment_status.dart';
+import '../mock_appointments.dart';
+import '../../models/appointment_status.dart';
 import '../../domain/entities/appointment_entity.dart';
 import '../../domain/repositories/appointments_repository.dart';
 
