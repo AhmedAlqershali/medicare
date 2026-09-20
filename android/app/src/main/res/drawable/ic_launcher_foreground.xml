@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,20h16v28h28v16H62v28H46V64H18V48h28z" />
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:gravity="center"
+        android:width="108dp"
+        android:height="108dp">
+        <bitmap
+            android:src="@drawable/medicare_launcher_asset"
+            android:gravity="center"
+            android:tileMode="disabled" />
+    </item>
+</layer-list>
