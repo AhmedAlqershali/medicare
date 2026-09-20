@@ -1,4 +1,4 @@
-import '../entities/organization_clinic_entity.dart';
+import '../../models/organization_clinic.dart';
 import '../repositories/organization_clinics_repository.dart';
 
 class GetOrganizationClinicsUseCase {
@@ -6,5 +6,5 @@ class GetOrganizationClinicsUseCase {
 
   final OrganizationClinicsRepository repository;
 
-  Future<List<OrganizationClinicEntity>> call() => repository.getOrganizationClinics();
+  Future<List<OrganizationClinic>> call() => repository.getOrganizationClinics();
 }

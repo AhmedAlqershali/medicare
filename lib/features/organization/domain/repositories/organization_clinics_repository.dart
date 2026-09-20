@@ -1,5 +1,5 @@
-import '../entities/organization_clinic_entity.dart';
+import '../../models/organization_clinic.dart';
 
 abstract class OrganizationClinicsRepository {
-  Future<List<OrganizationClinicEntity>> getOrganizationClinics();
+  Future<List<OrganizationClinic>> getOrganizationClinics();
 }

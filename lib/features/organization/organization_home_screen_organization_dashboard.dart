@@ -9,8 +9,8 @@ class _OrganizationDashboard extends StatefulWidget {
 }
 
 class _OrganizationDashboardState extends State<_OrganizationDashboard> {
-  List<OrganizationClinicEntity> _clinics = const [];
-  List<OrganizationDoctorEntity> _doctors = const [];
+  List<OrganizationClinic> _clinics = const [];
+  List<OrganizationDoctor> _doctors = const [];
 
   @override
   void initState() {
@@ -52,38 +52,14 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
               SectionHeader(title: 'العيادات', actionLabel: 'عرض جميع العيادات', onAction: () => widget.onTabSelected(1)),
               const SizedBox(height: AppSpacing.sm),
               for (final clinic in _clinics.take(2)) ...[
-                _ClinicPreviewCard(clinic: OrganizationClinic(
-                  id: clinic.id,
-                  name: clinic.name,
-                  location: clinic.location,
-                  phone: clinic.phone,
-                  description: clinic.description,
-                  status: clinic.status,
-                  doctorsCount: clinic.doctorsCount,
-                  departmentsCount: clinic.departmentsCount,
-                  patientsCount: clinic.patientsCount,
-                  icon: IconData(clinic.iconCodePoint, fontFamily: 'MaterialIcons'),
-                  color: Color(clinic.colorValue),
-                  departments: List<String>.from(clinic.departments),
-                ), onTap: () => widget.onTabSelected(1)),
+                _ClinicPreviewCard(clinic: clinic, onTap: () => widget.onTabSelected(1)),
                 const SizedBox(height: AppSpacing.sm),
               ],
               const SizedBox(height: AppSpacing.xl),
               SectionHeader(title: 'الأطباء', actionLabel: 'عرض جميع الأطباء', onAction: () => widget.onTabSelected(2)),
               const SizedBox(height: AppSpacing.sm),
               for (final doctor in _doctors.take(2)) ...[
-                _DoctorPreviewCard(doctor: OrganizationDoctor(
-                  id: doctor.id,
-                  name: doctor.name,
-                  initials: doctor.initials,
-                  specialty: doctor.specialty,
-                  clinic: doctor.clinic,
-                  phone: doctor.phone,
-                  email: doctor.email,
-                  status: doctor.status,
-                  avatarColor: Color(doctor.avatarColorValue),
-                  scheduleSummary: doctor.scheduleSummary,
-                ), onTap: () => widget.onTabSelected(2)),
+                _DoctorPreviewCard(doctor: doctor, onTap: () => widget.onTabSelected(2)),
                 const SizedBox(height: AppSpacing.sm),
               ],
             ])),
