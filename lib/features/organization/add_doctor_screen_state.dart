@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/services/mock_doctor_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/firestore/repositories/firestore_doctor_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../auth/auth_widgets.dart';
@@ -28,7 +29,7 @@ class AddDoctorScreenState extends State<AddDoctorScreen> {
       setState(() => _error = 'أدخل اسم الطبيب وتخصصه وبريداً إلكترونياً صحيحاً.');
       return;
     }
-    final organizationId = MockDoctorRepository.instance.currentOrganizationId;
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null) {
       setState(() => _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.');
       return;
@@ -38,7 +39,7 @@ class AddDoctorScreenState extends State<AddDoctorScreen> {
       _error = null;
     });
     try {
-      MockDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: MockDoctorRepository.instance.currentInviterId);
+      FirestoreDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: FirebaseAuthRepository.instance.session.currentUser?.id ?? '');
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);

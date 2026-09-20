@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/mock_auth_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
@@ -32,7 +32,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
       _loading = true;
       _error = null;
     });
-    final result = await MockAuthRepository.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
+    final result = await FirebaseAuthRepository.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {
@@ -44,7 +44,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
 
   void _createAccount() {
     if (widget.role == AccountRole.organization) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('المؤسسات تُنشأ من الإدارة. لا يوجد تسجيل مؤسسات مفتوح في النسخة التجريبية.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('المؤسسات تُنشأ من الإدارة. يرجى التواصل مع فريق الإدارة لإنشاء الحساب.')));
       return;
     }
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => InvitationActivationScreen(role: widget.role)));
@@ -76,7 +76,7 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
             Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
           ],
           const SizedBox(height: AppSpacing.sm),
-          Align(alignment: AlignmentDirectional.centerStart, child: TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('استعادة كلمة المرور غير متصلة بخدمة بريد في النسخة التجريبية.'))), child: const Text('نسيت كلمة المرور؟'))),
+          Align(alignment: AlignmentDirectional.centerStart, child: TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('استعادة كلمة المرور متاحة عبر Firebase Authentication أو فريق الإدارة.'))), child: const Text('نسيت كلمة المرور؟'))),
           const SizedBox(height: AppSpacing.sm),
           PrimaryButton(label: 'تسجيل الدخول', icon: Icons.login_rounded, onPressed: _login, isLoading: _loading),
           const SizedBox(height: AppSpacing.lg),

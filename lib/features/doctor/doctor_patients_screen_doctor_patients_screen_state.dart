@@ -4,7 +4,11 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  List<DoctorPatient> _visiblePatients() => MockPatientRepository.instance.patientsForDoctor(MockPatientRepository.instance.currentDoctorId ?? '').map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
+  List<DoctorPatient> _visiblePatients() {
+    final doctorId = FirebaseAuthRepository.instance.session.doctorId ?? '';
+    final patients = FirestorePatientRepository.instance.patientsForDoctor(doctorId);
+    return patients.map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
+  }
 
   @override
   void dispose() { _searchController.dispose(); super.dispose(); }

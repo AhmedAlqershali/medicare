@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/mock_auth_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'account_type_selection_screen.dart';
@@ -31,8 +31,8 @@ class MedicareEntryScreenState extends State<MedicareEntryScreen> {
 
   void _finishSplash() {
     if (!mounted) return;
-    if (MockAuthRepository.instance.isAuthenticated) {
-      AuthNavigation.openRoleHome(context, MockAuthRepository.instance.session.currentRole!);
+    if (FirebaseAuthRepository.instance.isAuthenticated) {
+      AuthNavigation.openRoleHome(context, FirebaseAuthRepository.instance.session.currentRole!);
       return;
     }
     setState(() => _stage = AuthFlowStage.onboarding);

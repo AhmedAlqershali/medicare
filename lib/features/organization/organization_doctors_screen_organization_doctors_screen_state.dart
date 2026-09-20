@@ -18,9 +18,10 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   }).toList();
 
   List<OrganizationDoctor> _visibleDoctors() {
-    final organizationId = MockOrganizationRepository.instance.currentOrganization?.id;
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null) return const [];
-    return MockDoctorRepository.instance.doctorsForOrganization(organizationId).map((doctor) => OrganizationDoctor(id: doctor.id, name: doctor.name, initials: doctor.initials, specialty: doctor.specialty, clinic: MockOrganizationRepository.instance.currentOrganization?.name ?? 'المؤسسة الطبية', phone: 'غير متاح', email: doctor.email, status: doctor.status == AccountStatus.active ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.sky, scheduleSummary: 'سيتم تحديد الجدول بعد تفعيل الحساب')).toList();
+    final organization = FirestoreOrganizationRepository.instance;
+    return FirestoreDoctorRepository.instance.doctorsForOrganization(organizationId).map((doctor) => OrganizationDoctor(id: doctor.id, name: doctor.name, initials: doctor.initials, specialty: doctor.specialty, clinic: organization.currentOrganization?.name ?? 'المؤسسة الطبية', phone: 'غير متاح', email: doctor.email, status: doctor.status == AccountStatus.active ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.sky, scheduleSummary: 'سيتم تحديد الجدول بعد تفعيل الحساب')).toList();
   }
 
   @override

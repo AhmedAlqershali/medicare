@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/auth/models/account_status.dart';
-import '../../core/auth/services/mock_doctor_repository.dart';
-import '../../core/auth/services/mock_organization_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'add_doctor_screen.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/medicare_entry_screen.dart';
 import '../../features/auth/protected_role_home_screen.dart';
 import 'models/account_role.dart';
-import 'services/mock_auth_repository.dart';
+import 'services/firebase_auth_repository.dart';
 
 class AuthNavigation {
   const AuthNavigation._();
@@ -13,7 +13,7 @@ class AuthNavigation {
   }
 
   static void openSignedOutFlow(BuildContext context) {
-    MockAuthRepository.instance.logout();
+    FirebaseAuthRepository.instance.logout();
     Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const MedicareEntryScreen()), (_) => false);
   }
 }

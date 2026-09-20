@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/mock_auth_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
@@ -33,8 +33,8 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
       _loading = true;
     });
     final result = widget.role == AccountRole.patient
-        ? await MockAuthRepository.instance.activatePatientAccount(email: email, password: password)
-        : await MockAuthRepository.instance.activateInvitation(role: widget.role, email: email, password: password);
+        ? await FirebaseAuthRepository.instance.activatePatientAccount(email: email, password: password)
+        : await FirebaseAuthRepository.instance.activateInvitation(role: widget.role, email: email, password: password);
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {
@@ -70,9 +70,9 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
             Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
           ],
           const SizedBox(height: AppSpacing.xl),
-          PrimaryButton(label: widget.role == AccountRole.patient ? 'تفعيل الحساب' : 'تفعيل الحساب محلياً', icon: Icons.verified_user_outlined, onPressed: _activate, isLoading: _loading),
+          PrimaryButton(label: widget.role == AccountRole.patient ? 'تفعيل الحساب' : 'تفعيل الحساب', icon: Icons.verified_user_outlined, onPressed: _activate, isLoading: _loading),
           const SizedBox(height: AppSpacing.md),
-          Text(widget.role == AccountRole.patient ? 'لا يتم إرسال بريد فعلي. استخدم البريد نفسه الذي أضافه الطبيب.' : 'لا يتم إرسال بريد فعلي. هذه الدعوة محفوظة في الذاكرة لمحاكاة التكامل المستقبلي.', style: Theme.of(context).textTheme.bodyMedium),
+          Text(widget.role == AccountRole.patient ? 'لا يتم إرسال بريد فعلي. استخدم البريد نفسه الذي أضافه الطبيب.' : 'استخدم البريد الإلكتروني المرسل مع الدعوة لتنشيط الحساب في Firebase.', style: Theme.of(context).textTheme.bodyMedium),
         ],
       );
 }

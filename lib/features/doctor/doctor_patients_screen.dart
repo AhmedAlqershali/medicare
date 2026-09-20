@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/services/mock_patient_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'add_patient_screen.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/services/mock_patient_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/firestore/repositories/firestore_patient_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../auth/auth_widgets.dart';
@@ -22,7 +23,7 @@ class AddPatientScreenState extends State<AddPatientScreen> {
 
   Future<void> _submit() async {
     final email = _emailController.text.trim();
-    final doctorId = MockPatientRepository.instance.currentDoctorId;
+    final doctorId = FirebaseAuthRepository.instance.session.doctorId;
     if (_nameController.text.trim().isEmpty || !_isEmail(email)) {
       setState(() => _error = 'أدخل اسم المريض وبريداً إلكترونياً صحيحاً.');
       return;
@@ -36,7 +37,7 @@ class AddPatientScreenState extends State<AddPatientScreen> {
       _error = null;
     });
     try {
-      MockPatientRepository.instance.createPatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: MockPatientRepository.instance.currentInviterId);
+      FirestorePatientRepository.instance.createPatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: FirebaseAuthRepository.instance.session.currentUser?.id ?? '');
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);

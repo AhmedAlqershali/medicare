@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/auth_navigation.dart';
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/services/mock_auth_repository.dart';
+import '../../core/auth/services/firebase_auth_repository.dart';
 import '../doctor/doctor_home_screen.dart';
 import '../organization/organization_home_screen.dart';
 import '../patient/patient_home_screen.dart';
@@ -14,7 +14,7 @@ class ProtectedRoleHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = MockAuthRepository.instance.session;
+    final session = FirebaseAuthRepository.instance.session;
     if (!session.isAuthenticated || session.currentRole != role) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) AuthNavigation.openSignedOutFlow(context);
