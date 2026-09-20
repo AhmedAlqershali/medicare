@@ -1,4 +1,4 @@
-import '../../../core/auth/models/account_role.dart';
+import '../../../../core/auth/models/account_role.dart';
 
 class UserAccount {
   const UserAccount({

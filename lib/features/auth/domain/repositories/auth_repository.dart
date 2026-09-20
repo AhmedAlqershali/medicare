@@ -1,4 +1,4 @@
-import '../../../core/auth/models/account_role.dart';
+import '../../../../core/auth/models/account_role.dart';
 import '../../domain/entities/user_account.dart';
 
 abstract class AuthRepository {
