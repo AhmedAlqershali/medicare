@@ -28,12 +28,18 @@ class FirestorePatientRepository implements PatientRepository {
     return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
   }
 
+  Future<List<Patient>> fetchPatientsForOrganization(String organizationId) async {
+    if (organizationId.trim().isEmpty) return const [];
+    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
+    return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
+  }
+
   @override
   Future<Patient?> patientForId(String patientId) => fetchPatientById(patientId);
 
   @override
   Future<Patient> createPatient({required String doctorId, required String name, required String email, required String invitedBy}) async {
-    final trimmedEmail = email.trim();
+    final trimmedEmail = email.trim().toLowerCase();
     final doctor = await _doctorRepository.doctorForId(doctorId);
     if (doctor == null || doctor.organizationId.isEmpty) {
       throw StateError('لم يتم العثور على مؤسسة الطبيب قبل إنشاء سجل المريض.');
@@ -52,7 +58,7 @@ class FirestorePatientRepository implements PatientRepository {
       createdAt: now,
       updatedAt: now,
     );
-    await _service.firestore.collection(FirestorePaths.patients).doc(patient.id).set(patient.toMap());
+    await _service.patientDocument(patient.id).set(patient.toMap());
     return patient;
   }
 

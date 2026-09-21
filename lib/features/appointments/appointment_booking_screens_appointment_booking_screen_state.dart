@@ -8,16 +8,8 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   String? _validationMessage;
   bool _loading = false;
 
-  static const _dates = [
-    AppointmentDate(day: 'الأحد', number: '٢٩', month: 'سبتمبر'),
-    AppointmentDate(day: 'الاثنين', number: '٣٠', month: 'سبتمبر'),
-    AppointmentDate(day: 'الثلاثاء', number: '١', month: 'أكتوبر'),
-    AppointmentDate(day: 'الأربعاء', number: '٢', month: 'أكتوبر'),
-    AppointmentDate(day: 'الخميس', number: '٣', month: 'أكتوبر'),
-  ];
-
-  static const _times = ['٠٩:٠٠ ص', '٠٩:٣٠ ص', '١٠:٠٠ ص', '١٠:٣٠ ص', '١١:٠٠ ص', '٠٤:٠٠ م', '٠٤:٣٠ م', '٠٥:٠٠ م'];
-  static const _unavailableTimes = {'١٠:٠٠ ص', '٠٤:٣٠ م'};
+  static const List<AppointmentDate> _dates = [];
+  static const List<String> _times = [];
 
   @override
   void dispose() {
@@ -37,7 +29,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
               const SizedBox(height: AppSpacing.xl),
               Text('اختر التاريخ', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
-              SizedBox(
+              if (_dates.isEmpty) const EmptyState(title: 'لا توجد مواعيد متاحة', message: 'لم يتم نشر أوقات توافر لهذا الطبيب بعد.') else SizedBox(
                 height: 86,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
@@ -64,7 +56,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                     _TimeOption(
                       label: time,
                       selected: time == _selectedTime,
-                      unavailable: _unavailableTimes.contains(time),
+                      unavailable: false,
                       onTap: () => setState(() {
                         _selectedTime = time;
                         _validationMessage = null;

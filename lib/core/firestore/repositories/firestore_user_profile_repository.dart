@@ -9,10 +9,8 @@ class FirestoreUserProfileRepository {
 
   final FirestoreService _service;
 
-  CollectionReference<Map<String, dynamic>> get _usersCollection => _service.firestore.collection('users');
-
   Future<UserProfile?> fetchUserProfile(String uid) async {
-    final snapshot = await _usersCollection.doc(uid).get();
+    final snapshot = await _service.userDocument(uid).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
     return UserProfile.fromMap(snapshot.data()!);
   }
@@ -43,18 +41,20 @@ class FirestoreUserProfileRepository {
 
     final profileMap = profile.toMap();
     if (invitationId != null) profileMap['invitationId'] = invitationId;
-    await _usersCollection.doc(uid).set(profileMap, SetOptions(merge: true));
+    await _service.userDocument(uid).set(profileMap, SetOptions(merge: true));
     return profile;
   }
 
   Future<void> linkPatientProfile({
     required String uid,
+    required String email,
     required String patientId,
     required String doctorId,
     required String organizationId,
   }) async {
-    await _usersCollection.doc(uid).set({
+    await _service.userDocument(uid).set({
       'uid': uid,
+      'email': email.trim(),
       'patientId': patientId,
       'doctorId': doctorId,
       'organizationId': organizationId,
@@ -65,11 +65,13 @@ class FirestoreUserProfileRepository {
 
   Future<void> linkDoctorProfile({
     required String uid,
+    required String email,
     required String doctorId,
     required String organizationId,
   }) async {
-    await _usersCollection.doc(uid).set({
+    await _service.userDocument(uid).set({
       'uid': uid,
+      'email': email.trim(),
       'doctorId': doctorId,
       'organizationId': organizationId,
       'role': AccountRole.doctor.name,
@@ -93,6 +95,6 @@ class FirestoreUserProfileRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     };
     if (invitationId != null) profile['invitationId'] = invitationId;
-    await _usersCollection.doc(uid).set(profile, SetOptions(merge: true));
+    await _service.userDocument(uid).set(profile, SetOptions(merge: true));
   }
 }

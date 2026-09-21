@@ -13,7 +13,7 @@ class FirestoreClinicRepository {
   final FirestoreService _service;
 
   Future<Map<String, dynamic>?> fetchClinicById(String organizationId, String clinicId) async {
-    final snapshot = await _service.clinicCollection(organizationId).doc(clinicId).get();
+    final snapshot = await _service.clinicDocument(organizationId, clinicId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
     final clinic = snapshot.data()!;
     if (clinic['organizationId'] != null && clinic['organizationId'] != organizationId) {
@@ -42,7 +42,7 @@ class FirestoreClinicRepository {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
-    await _service.clinicCollection(organizationId).doc(clinicId).set(safeClinic, SetOptions(merge: true));
+    await _service.clinicDocument(organizationId, clinicId).set(safeClinic, SetOptions(merge: true));
     return safeClinic;
   }
 
@@ -61,11 +61,11 @@ class FirestoreClinicRepository {
       'organizationId': organizationId,
       'updatedAt': FieldValue.serverTimestamp(),
     };
-    await _service.clinicCollection(organizationId).doc(clinicId).set(safeClinic, SetOptions(merge: true));
+    await _service.clinicDocument(organizationId, clinicId).set(safeClinic, SetOptions(merge: true));
   }
 
   Future<void> deleteClinic({required String organizationId, required String clinicId}) async {
-    await _service.clinicCollection(organizationId).doc(clinicId).delete();
+    await _service.clinicDocument(organizationId, clinicId).delete();
   }
 
   Future<void> saveOrganization({required Organization organization}) async {
@@ -86,7 +86,7 @@ class FirestoreClinicRepository {
         .toList();
   }
 
-  DocumentReference<Map<String, dynamic>> clinicDocument(String organizationId, String clinicId) => _service.clinicCollection(organizationId).doc(clinicId);
+  DocumentReference<Map<String, dynamic>> clinicDocument(String organizationId, String clinicId) => _service.clinicDocument(organizationId, clinicId);
 
-  DocumentReference<Map<String, dynamic>> clinicDocumentForPaths(String organizationId, String clinicId) => _service.firestore.doc(FirestorePaths.clinic(organizationId, clinicId));
+  DocumentReference<Map<String, dynamic>> clinicDocumentForPaths(String organizationId, String clinicId) => _service.clinicDocument(organizationId, clinicId);
 }

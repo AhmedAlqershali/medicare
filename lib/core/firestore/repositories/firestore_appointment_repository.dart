@@ -11,7 +11,7 @@ class FirestoreAppointmentRepository {
   final FirestoreService _service;
 
   Future<Map<String, dynamic>?> fetchAppointmentById(String organizationId, String appointmentId) async {
-    final snapshot = await _service.appointmentCollection(organizationId).doc(appointmentId).get();
+    final snapshot = await _service.appointmentDocument(organizationId, appointmentId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
     final appointment = snapshot.data()!;
     if (appointment['organizationId'] != null && appointment['organizationId'] != organizationId) {
@@ -66,7 +66,7 @@ class FirestoreAppointmentRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    await _service.appointmentCollection(organizationId).doc(appointmentId).set(safeAppointment, SetOptions(merge: true));
+    await _service.appointmentDocument(organizationId, appointmentId).set(safeAppointment, SetOptions(merge: true));
     return safeAppointment;
   }
 
@@ -88,16 +88,16 @@ class FirestoreAppointmentRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    await _service.appointmentCollection(organizationId).doc(appointmentId).set(safeAppointment, SetOptions(merge: true));
+    await _service.appointmentDocument(organizationId, appointmentId).set(safeAppointment, SetOptions(merge: true));
   }
 
   Future<void> deleteAppointment({required String organizationId, required String appointmentId}) async {
-    await _service.appointmentCollection(organizationId).doc(appointmentId).delete();
+    await _service.appointmentDocument(organizationId, appointmentId).delete();
   }
 
   DocumentReference<Map<String, dynamic>> appointmentDocument(String organizationId, String appointmentId) =>
-      _service.appointmentCollection(organizationId).doc(appointmentId);
+      _service.appointmentDocument(organizationId, appointmentId);
 
   DocumentReference<Map<String, dynamic>> appointmentDocumentForPaths(String organizationId, String appointmentId) =>
-      _service.firestore.doc(FirestorePaths.appointment(organizationId, appointmentId));
+      _service.appointmentDocument(organizationId, appointmentId);
 }

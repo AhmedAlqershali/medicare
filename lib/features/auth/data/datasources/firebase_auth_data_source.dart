@@ -48,6 +48,68 @@ class FirebaseAuthDataSource {
 
   AccountRole? get currentRole => _session.currentRole;
 
+  Future<void> restoreSession() async {
+    final firebaseUser = _firebaseAuth.currentUser;
+    if (firebaseUser == null) {
+      _session = const AuthSession.signedOut();
+      return;
+    }
+
+    try {
+      final profile = await _userProfileRepository.fetchUserProfile(firebaseUser.uid);
+      if (profile == null) throw StateError('لم يتم العثور على ملف المستخدم المرتبط بحساب Firebase.');
+
+      switch (profile.role) {
+        case AccountRole.organization:
+          final organizationId = profile.organizationId;
+          if (organizationId == null || organizationId.isEmpty) throw StateError('ملف المؤسسة لا يحتوي على معرف مؤسسة صالح.');
+          final organization = await _organizationRepository.fetchOrganizationById(organizationId);
+          if (organization == null || organization.status != AccountStatus.active || (organization.firebaseUid != null && organization.firebaseUid != firebaseUser.uid)) {
+            throw StateError('تعذر التحقق من ملكية المؤسسة لحساب Firebase الحالي.');
+          }
+          _session = AuthSession(
+            isAuthenticated: true,
+            currentUser: AuthUser(id: firebaseUser.uid, name: organization.name, email: firebaseUser.email ?? profile.email, role: AccountRole.organization, organizationId: organization.id, clinicId: profile.clinicId),
+            currentRole: AccountRole.organization,
+            organizationId: organization.id,
+            clinicId: profile.clinicId,
+          );
+        case AccountRole.doctor:
+          final doctorId = profile.doctorId;
+          if (doctorId == null || doctorId.isEmpty) throw StateError('ملف الطبيب لا يحتوي على معرف طبيب صالح.');
+          final doctor = await _doctorRepository.fetchDoctorById(doctorId);
+          if (doctor == null || doctor.status != AccountStatus.active || doctor.firebaseUid != firebaseUser.uid) {
+            throw StateError('تعذر التحقق من عضوية الطبيب لحساب Firebase الحالي.');
+          }
+          _session = AuthSession(
+            isAuthenticated: true,
+            currentUser: AuthUser(id: doctor.id, name: doctor.name, email: firebaseUser.email ?? doctor.email, role: AccountRole.doctor, organizationId: doctor.organizationId, doctorId: doctor.id),
+            currentRole: AccountRole.doctor,
+            organizationId: doctor.organizationId,
+            doctorId: doctor.id,
+          );
+        case AccountRole.patient:
+          final patientId = profile.patientId;
+          if (patientId == null || patientId.isEmpty) throw StateError('ملف المريض لا يحتوي على معرف مريض صالح.');
+          final patient = await _patientRepository.fetchPatientById(patientId);
+          if (patient == null || !patient.accountActivated || patient.firebaseUid != firebaseUser.uid) {
+            throw StateError('تعذر التحقق من ملكية سجل المريض لحساب Firebase الحالي.');
+          }
+          _session = AuthSession(
+            isAuthenticated: true,
+            currentUser: AuthUser(id: patient.id, name: patient.name, email: firebaseUser.email ?? patient.email, role: AccountRole.patient, organizationId: patient.organizationId, doctorId: patient.doctorId, patientId: patient.id),
+            currentRole: AccountRole.patient,
+            organizationId: patient.organizationId,
+            doctorId: patient.doctorId,
+            patientId: patient.id,
+          );
+      }
+    } catch (_) {
+      await _firebaseAuth.signOut();
+      _session = const AuthSession.signedOut();
+    }
+  }
+
   Future<User?> createFirebaseAccountIfNeeded({required String email, required String password}) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email.trim(), password: password);
@@ -215,6 +277,7 @@ class FirebaseAuthDataSource {
           );
           await _userProfileRepository.linkDoctorProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             doctorId: doctorRecord.id,
             organizationId: doctorRecord.organizationId,
           );
@@ -253,6 +316,7 @@ class FirebaseAuthDataSource {
           );
           await _userProfileRepository.linkPatientProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             patientId: patientRecord.id,
             doctorId: patientRecord.doctorId,
             organizationId: patientRecord.organizationId,
@@ -306,14 +370,6 @@ class FirebaseAuthDataSource {
         return (success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.', user: null, currentRole: null);
       }
 
-      final organization = await _organizationRepository.fetchOrganizationById(invitation.organizationId);
-      if (organization == null) {
-        return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.', user: null, currentRole: null);
-      }
-      if (organization.status != AccountStatus.active) {
-        return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.', user: null, currentRole: null);
-      }
-
       if (role == AccountRole.doctor) {
         final doctorRecord = await _doctorRepository.fetchDoctorByEmail(normalizedEmail);
         if (doctorRecord == null) {
@@ -326,7 +382,7 @@ class FirebaseAuthDataSource {
           return (success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.', user: null, currentRole: null);
         }
         await _doctorRepository.linkFirebaseUid(doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
-        await _userProfileRepository.linkDoctorProfile(uid: userCredential.uid, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
+        await _userProfileRepository.linkDoctorProfile(uid: userCredential.uid, email: normalizedEmail, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
       } else {
         await _userProfileRepository.createOrUpdateUserProfile(
           uid: userCredential.uid,
@@ -341,7 +397,7 @@ class FirebaseAuthDataSource {
 
       final createdUser = UserAccount(
         id: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.id ?? invitation.doctorId ?? '' : invitation.organizationId,
-        name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : organization.name,
+          name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
         email: normalizedEmail,
         role: role,
         organizationId: invitation.organizationId,
@@ -439,14 +495,6 @@ class FirebaseAuthDataSource {
       return (success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.', user: null, currentRole: null);
     }
 
-    final doctorRecord = await _doctorRepository.fetchDoctorById(patientRecord.doctorId);
-    if (doctorRecord == null) return (success: false, message: 'الطبيب المرتبط بهذا المريض غير موجود.', user: null, currentRole: null);
-    if (doctorRecord.status != AccountStatus.active) return (success: false, message: 'الطبيب المرتبط بهذا المريض غير نشط.', user: null, currentRole: null);
-
-    final organizationRecord = await _organizationRepository.fetchOrganizationById(patientRecord.organizationId);
-    if (organizationRecord == null) return (success: false, message: 'المؤسسة المرتبطة بهذا المريض غير موجودة.', user: null, currentRole: null);
-    if (organizationRecord.status != AccountStatus.active) return (success: false, message: 'المؤسسة المرتبطة بهذا المريض غير نشطة.', user: null, currentRole: null);
-
     try {
       final userCredential = await createFirebaseAccountIfNeeded(email: normalizedEmail, password: password);
       if (userCredential == null) {
@@ -458,6 +506,7 @@ class FirebaseAuthDataSource {
       await _patientRepository.activatePatient(patientId: patientRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
       await _userProfileRepository.linkPatientProfile(
         uid: userCredential.uid,
+        email: normalizedEmail,
         patientId: patientRecord.id,
         doctorId: patientRecord.doctorId,
         organizationId: patientRecord.organizationId,

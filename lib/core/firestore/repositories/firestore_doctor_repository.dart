@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../auth/models/account_role.dart';
 import '../../auth/models/account_status.dart';
 import '../../auth/models/doctor.dart';
+import '../../auth/models/invitation.dart';
+import '../../auth/models/invitation_status.dart';
 import '../../auth/repositories/doctor_repository.dart';
 import '../firestore_paths.dart';
 import '../firestore_service.dart';
@@ -27,7 +30,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
   @override
   Future<Doctor> inviteDoctor({required String organizationId, required String name, required String email, required String specialty, required String invitedBy}) async {
     final now = DateTime.now();
-    final trimmedEmail = email.trim();
+    final trimmedEmail = email.trim().toLowerCase();
     final doctor = Doctor(
       id: doctorIdFor(organizationId, trimmedEmail),
       name: name.trim(),
@@ -40,7 +43,19 @@ class FirestoreDoctorRepository implements DoctorRepository {
       createdAt: now,
       updatedAt: now,
     );
-    await _service.doctorDocument(doctor.id).set(doctor.toMap());
+    final invitation = Invitation(
+      id: doctor.id,
+      email: trimmedEmail,
+      role: AccountRole.doctor,
+      invitedBy: invitedBy.trim(),
+      organizationId: organizationId,
+      status: InvitationStatus.pending,
+      doctorId: doctor.id,
+    );
+    await _service.firestore.runTransaction((transaction) async {
+      transaction.set(_service.doctorDocument(doctor.id), doctor.toMap());
+      transaction.set(_service.invitationDocument(organizationId, invitation.id), invitation.toMap());
+    });
     return doctor;
   }
 
@@ -93,7 +108,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
       email: doctor.email,
       organizationId: doctor.organizationId,
       specialty: doctor.specialty,
-      status: doctor.status,
+      status: AccountStatus.active,
       initials: doctor.initials,
       firebaseUid: firebaseUid,
       createdAt: doctor.createdAt ?? DateTime.now(),

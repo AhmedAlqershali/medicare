@@ -29,6 +29,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   bool get isAuthenticated => _dataSource.isAuthenticated;
 
+  Future<void> restoreSession() async {
+    await _dataSource.restoreSession();
+    if (_dataSource.isAuthenticated) {
+      FirebaseAuthRepository.instance.adoptSession(_dataSource.session);
+    }
+  }
+
   @override
   Future<AuthResult> login({required AccountRole role, required String email, required String password}) async {
     final result = await _dataSource.login(role: role, email: email, password: password);

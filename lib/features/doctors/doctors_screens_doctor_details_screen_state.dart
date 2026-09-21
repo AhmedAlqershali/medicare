@@ -4,8 +4,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   int _selectedDate = 0;
   String? _selectedTime;
 
-  static const _dates = ['اليوم\n٢٤ سبتمبر', 'غداً\n٢٥ سبتمبر', 'الخميس\n٢٦ سبتمبر', 'الجمعة\n٢٧ سبتمبر'];
-  static const _times = ['٠٩:٠٠ ص', '١٠:٣٠ ص', '١٢:٠٠ م', '٠٤:٣٠ م'];
+  static const List<String> _dates = [];
+  static const List<String> _times = [];
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -52,7 +52,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               const SizedBox(height: AppSpacing.xl),
               Text('المواعيد المتاحة', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
-              SizedBox(
+              if (_dates.isEmpty) const EmptyState(title: 'لا توجد مواعيد متاحة', message: 'لم يتم نشر أوقات توافر لهذا الطبيب بعد.') else SizedBox(
                 height: 68,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
@@ -77,7 +77,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: [for (final time in _times) _TimeChip(label: time, selected: time == _selectedTime, onTap: () => setState(() => _selectedTime = time))]),
+              if (_times.isNotEmpty) Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: [for (final time in _times) _TimeChip(label: time, selected: time == _selectedTime, onTap: () => setState(() => _selectedTime = time))]),
               const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,

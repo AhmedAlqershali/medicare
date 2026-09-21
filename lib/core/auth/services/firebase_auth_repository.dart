@@ -163,6 +163,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           await _firestoreUserProfileRepository.linkDoctorProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             doctorId: doctorRecord.id,
             organizationId: doctorRecord.organizationId,
           );
@@ -192,6 +193,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           await _firestoreUserProfileRepository.linkPatientProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             patientId: patientRecord.id,
             doctorId: patientRecord.doctorId,
             organizationId: patientRecord.organizationId,
@@ -234,14 +236,6 @@ class FirebaseAuthRepository implements AuthRepository {
         return const AuthResult(success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.');
       }
 
-      final organization = await _firestoreOrganizationRepository.fetchOrganizationById(invitation.organizationId);
-      if (organization == null) {
-        return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.');
-      }
-      if (organization.status != AccountStatus.active) {
-        return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.');
-      }
-
       if (role == AccountRole.doctor) {
         final doctorRecord = await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail);
         if (doctorRecord == null) {
@@ -254,7 +248,7 @@ class FirebaseAuthRepository implements AuthRepository {
           return const AuthResult(success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.');
         }
         await _firestoreDoctorRepository.linkFirebaseUid(doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
-        await _firestoreUserProfileRepository.linkDoctorProfile(uid: userCredential.uid, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
+        await _firestoreUserProfileRepository.linkDoctorProfile(uid: userCredential.uid, email: normalizedEmail, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
       } else {
         await _firestoreUserProfileRepository.createOrUpdateUserProfile(
           uid: userCredential.uid,
@@ -264,22 +258,17 @@ class FirebaseAuthRepository implements AuthRepository {
         );
       }
 
-      final updatedInvitation = Invitation(
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        invitedBy: invitation.invitedBy,
-        organizationId: invitation.organizationId,
+      final updatedInvitation = invitation.copyWith(
         status: InvitationStatus.accepted,
-        doctorId: invitation.doctorId,
-        patientId: invitation.patientId,
+        userId: userCredential.uid,
+        acceptedAt: DateTime.now(),
       );
       await _firestoreInvitationRepository.saveInvitation(organizationId: invitation.organizationId, invitation: updatedInvitation);
       _session = AuthSession(
         isAuthenticated: true,
         currentUser: AuthUser(
           id: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.id ?? invitation.doctorId ?? '' : invitation.organizationId,
-          name: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : organization.name,
+          name: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
           email: normalizedEmail,
           role: role,
           organizationId: invitation.organizationId,
@@ -316,20 +305,13 @@ class FirebaseAuthRepository implements AuthRepository {
         return const AuthResult(success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.');
       }
 
-      final doctorRecord = await _firestoreDoctorRepository.fetchDoctorById(patientRecord.doctorId);
-      if (doctorRecord == null) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير موجود.');
-      if (doctorRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير نشط.');
-
-      final organizationRecord = await _firestoreOrganizationRepository.fetchOrganizationById(patientRecord.organizationId);
-      if (organizationRecord == null) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير موجودة.');
-      if (organizationRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير نشطة.');
-
       if (patientRecord.firebaseUid != null && patientRecord.firebaseUid != userCredential.uid) {
         return const AuthResult(success: false, message: 'هذا المريض مرتبط بالفعل بحساب مستخدم آخر ولا يمكن استخدامه هنا.');
       }
       await _firestorePatientRepository.activatePatient(patientId: patientRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
       await _firestoreUserProfileRepository.linkPatientProfile(
         uid: userCredential.uid,
+        email: normalizedEmail,
         patientId: patientRecord.id,
         doctorId: patientRecord.doctorId,
         organizationId: patientRecord.organizationId,

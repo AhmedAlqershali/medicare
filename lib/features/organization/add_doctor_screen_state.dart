@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/firestore/repositories/firestore_doctor_repository.dart';
@@ -39,7 +40,7 @@ class AddDoctorScreenState extends State<AddDoctorScreen> {
       _error = null;
     });
     try {
-      await FirestoreDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: FirebaseAuthRepository.instance.session.currentUser?.id ?? '');
+      await FirestoreDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: FirebaseAuth.instance.currentUser?.uid ?? '');
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);

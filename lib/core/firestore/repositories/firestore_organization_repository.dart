@@ -70,7 +70,7 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
     final organization = Organization(
       id: reference.id,
       name: name,
-      email: email,
+      email: email.trim().toLowerCase(),
       phone: phone,
       location: location,
       status: status,

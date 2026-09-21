@@ -2,8 +2,8 @@ part of 'doctor_profile_screens.dart';
 
 class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
   int _selectedDay = 0;
-  static const _days = [('الأحد', '٢٢'), ('الاثنين', '٢٣'), ('الثلاثاء', '٢٤'), ('الأربعاء', '٢٥'), ('الخميس', '٢٦')];
-  static const _slots = [('٠٨:٠٠ ص', true), ('٠٩:٠٠ ص', false), ('١٠:٠٠ ص', true), ('١١:٠٠ ص', false), ('٠١:٠٠ م', false), ('٠٢:٠٠ م', true), ('٠٤:٠٠ م', false)];
+  static const List<(String, String)> _days = [];
+  static const List<(String, bool)> _slots = [];
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -17,7 +17,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
               children: [
                 Text('جدول مواعيدك لهذا الأسبوع', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: AppSpacing.lg),
-                SizedBox(
+                if (_days.isEmpty) const EmptyState(title: 'لا يوجد جدول متاح', message: 'لم يتم نشر جدول لهذا الطبيب بعد.') else SizedBox(
                   height: 76,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
@@ -56,7 +56,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                     children: [
                       Icon(Icons.access_time_outlined, color: AppColors.primary),
                       SizedBox(width: AppSpacing.sm),
-                      Text('من ٠٨:٠٠ صباحاً إلى ٠٥:٠٠ مساءً', style: TextStyle(fontWeight: FontWeight.w700)),
+                      Text('لا توجد ساعات عمل منشورة', style: TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -66,10 +66,10 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
-                  children: [for (final slot in _slots) _ScheduleSlot(time: slot.$1, booked: slot.$2)],
+                  children: [if (_slots.isNotEmpty) for (final slot in _slots) _ScheduleSlot(time: slot.$1, booked: slot.$2)],
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Row(
+                if (_slots.isNotEmpty) const Row(
                   children: [
                     _Legend(color: AppColors.primary, label: 'محجوز'),
                     SizedBox(width: AppSpacing.lg),

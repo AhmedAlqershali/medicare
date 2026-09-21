@@ -154,7 +154,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
       throw StateError('هذه الدعوة غير صالحة أو تم استخدامها من قبل.');
     }
     final invitationReference = _service.invitationDocument(invitation.organizationId, invitation.id);
-    final userReference = _service.firestore.collection('users').doc(uid);
+    final userReference = _service.userDocument(uid);
     await _service.firestore.runTransaction((transaction) async {
       final invitationSnapshot = await transaction.get(invitationReference);
       final userSnapshot = await transaction.get(userReference);
@@ -207,7 +207,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
       _service.invitationDocument(organizationId, invitationId);
 
   DocumentReference<Map<String, dynamic>> invitationDocumentForPaths(String organizationId, String invitationId) =>
-      _service.firestore.doc(FirestorePaths.invitation(organizationId, invitationId));
+      _service.invitationDocument(organizationId, invitationId);
 
   void _validateInvitationOrganization(String organizationId, Invitation invitation) {
     if (organizationId.trim().isEmpty) {
