@@ -18,7 +18,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
   Future<List<Invitation>> invitationsFor({required String organizationId, AccountRole? role}) => fetchInvitationsForOrganization(organizationId, role: role);
 
   @override
-  Future<Invitation?> pendingInvitation({required AccountRole role, required String email}) async {
+  Future<Invitation?> pendingInvitation({required String organizationId, required AccountRole role, required String email}) async {
     final invitations = await fetchInvitationsForOrganization(organizationId, role: role);
     final normalizedEmail = email.trim().toLowerCase();
     for (final invitation in invitations) {

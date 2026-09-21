@@ -126,6 +126,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       icon: clinic.icon,
       color: Color(clinic.colorValue),
       doctors: clinic.doctors.map((doctor) => ClinicDoctorData(
+        id: doctor.id,
         initials: doctor.initials,
         name: doctor.name,
         specialty: doctor.specialty,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/auth/models/account_role.dart';
-import '../../core/auth/models/auth_result.dart';
 import '../../core/routing/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
@@ -39,11 +38,17 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
       _error = null;
       _loading = true;
     });
-    AuthResult result;
     try {
-      result = widget.role == AccountRole.patient
+      final result = widget.role == AccountRole.patient
           ? await AuthRepositoryImpl.instance.activatePatientAccount(email: email, password: password)
           : await AuthRepositoryImpl.instance.activateInvitation(role: widget.role, email: email, password: password);
+      if (!mounted) return;
+      setState(() => _loading = false);
+      if (!result.success) {
+        setState(() => _error = result.message);
+        return;
+      }
+      AuthNavigation.openRoleHome(context, widget.role);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -52,13 +57,6 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
       });
       return;
     }
-    if (!mounted) return;
-    setState(() => _loading = false);
-    if (!result.success) {
-      setState(() => _error = result.message);
-      return;
-    }
-    AuthNavigation.openRoleHome(context, widget.role);
   }
 
   String get _title => switch (widget.role) {

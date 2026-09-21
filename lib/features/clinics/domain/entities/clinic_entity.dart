@@ -28,6 +28,7 @@ class ClinicEntity {
 
 class ClinicDoctorEntity {
   const ClinicDoctorEntity({
+    required this.id,
     required this.initials,
     required this.name,
     required this.specialty,
@@ -39,6 +40,7 @@ class ClinicDoctorEntity {
     required this.colorValue,
   });
 
+  final String id;
   final String initials;
   final String name;
   final String specialty;

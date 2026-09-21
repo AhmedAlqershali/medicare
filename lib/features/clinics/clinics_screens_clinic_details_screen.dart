@@ -50,7 +50,7 @@ class ClinicDetailsScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: _ClinicDoctorCard(
                       doctor: doctor,
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorDetailsScreen.preview(initials: doctor.initials, name: doctor.name, specialty: doctor.specialty, clinic: clinic.name, location: clinic.location, rating: doctor.rating, reviews: doctor.reviews, experience: doctor.experience, bio: doctor.bio, services: doctor.services, color: doctor.color))),
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorDetailsScreen.preview(doctorId: doctor.id, initials: doctor.initials, name: doctor.name, specialty: doctor.specialty, clinic: clinic.name, location: clinic.location, rating: doctor.rating, reviews: doctor.reviews, experience: doctor.experience, bio: doctor.bio, services: doctor.services, color: doctor.color))),
                     ),
                   )),
               const SizedBox(height: AppSpacing.md),
@@ -81,6 +81,7 @@ class ClinicDetailsScreen extends StatelessWidget {
                     MaterialPageRoute<void>(
                       builder: (_) => AppointmentBookingScreen(
                         bookingData: AppointmentBookingData(
+                          doctorId: clinic.doctors.first.id,
                           doctorName: clinic.doctors.first.name,
                           doctorInitials: clinic.doctors.first.initials,
                           specialty: clinic.doctors.first.specialty,

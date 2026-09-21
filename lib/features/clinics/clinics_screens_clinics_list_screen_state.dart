@@ -33,6 +33,7 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
         icon: entity.icon,
         color: Color(entity.colorValue),
         doctors: entity.doctors.map((doctor) => ClinicDoctorData(
+            id: doctor.id,
           initials: doctor.initials,
           name: doctor.name,
           specialty: doctor.specialty,

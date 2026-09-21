@@ -15,7 +15,8 @@ class DoctorDetailsScreen extends StatefulWidget {
     required String bio,
     required List<String> services,
     required Color color,
-  }) : doctor = DoctorData(initials: initials, name: name, specialty: specialty, clinic: clinic, location: location, rating: rating, reviews: reviews, experience: experience, bio: bio, services: services, color: color);
+    required String doctorId,
+  }) : doctor = DoctorData(id: doctorId, initials: initials, name: name, specialty: specialty, clinic: clinic, location: location, rating: rating, reviews: reviews, experience: experience, bio: bio, services: services, color: color);
   final DoctorData doctor;
 
   @override
