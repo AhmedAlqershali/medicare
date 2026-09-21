@@ -1,23 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/models/account_status.dart';
+import '../../auth/repositories/doctor_repository.dart';
 import '../../auth/models/patient.dart';
 import '../../auth/repositories/patient_repository.dart';
 import '../firestore_paths.dart';
 import '../firestore_service.dart';
+import 'firestore_doctor_repository.dart';
 
 class FirestorePatientRepository implements PatientRepository {
-  FirestorePatientRepository._({FirestoreService? service}) : _service = service ?? FirestoreService();
+  FirestorePatientRepository._({FirestoreService? service, DoctorRepository? doctorRepository})
+      : _service = service ?? FirestoreService(),
+        _doctorRepository = doctorRepository ?? FirestoreDoctorRepository.instance;
 
   static final instance = FirestorePatientRepository._();
 
   final FirestoreService _service;
+  final DoctorRepository _doctorRepository;
 
   @override
   Future<List<Patient>> patientsForDoctor(String doctorId) => fetchPatientsForDoctor(doctorId);
 
   Future<List<Patient>> fetchPatientsForDoctor(String doctorId) async {
-    final doctor = await fetchDoctorById(doctorId);
+    final doctor = await _doctorRepository.doctorForId(doctorId);
     if (doctor == null || doctor.organizationId.isEmpty) return [];
     final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).where('organizationId', isEqualTo: doctor.organizationId).get();
     return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
@@ -29,7 +34,7 @@ class FirestorePatientRepository implements PatientRepository {
   @override
   Future<Patient> createPatient({required String doctorId, required String name, required String email, required String invitedBy}) async {
     final trimmedEmail = email.trim();
-    final doctor = await fetchDoctorById(doctorId);
+    final doctor = await _doctorRepository.doctorForId(doctorId);
     if (doctor == null || doctor.organizationId.isEmpty) {
       throw StateError('لم يتم العثور على مؤسسة الطبيب قبل إنشاء سجل المريض.');
     }
