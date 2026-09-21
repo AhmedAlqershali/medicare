@@ -23,6 +23,8 @@ class FirestoreService {
 
   CollectionReference<Map<String, dynamic>> invitationCollection(String organizationId) => _firestore.collection('organizations').doc(organizationId).collection('invitations');
 
+    Query<Map<String, dynamic>> invitationCollectionGroup() => _firestore.collectionGroup('invitations');
+
   DocumentReference<Map<String, dynamic>> organizationDocument(String organizationId) => _firestore.collection('organizations').doc(organizationId);
 
   DocumentReference<Map<String, dynamic>> doctorDocument(String doctorId) => _firestore.collection('doctors').doc(doctorId);

@@ -6,6 +6,7 @@ class UserProfile {
     required this.email,
     required this.role,
     this.organizationId,
+    this.clinicId,
     this.doctorId,
     this.patientId,
     required this.createdAt,
@@ -16,6 +17,7 @@ class UserProfile {
   final String email;
   final AccountRole role;
   final String? organizationId;
+  final String? clinicId;
   final String? doctorId;
   final String? patientId;
   final DateTime createdAt;
@@ -26,6 +28,7 @@ class UserProfile {
         'email': email,
         'role': role.name,
         'organizationId': organizationId,
+        'clinicId': clinicId,
         'doctorId': doctorId,
         'patientId': patientId,
         'createdAt': createdAt.toUtc().toIso8601String(),
@@ -40,6 +43,7 @@ class UserProfile {
           orElse: () => AccountRole.patient,
         ),
         organizationId: map['organizationId'] as String?,
+        clinicId: map['clinicId'] as String?,
         doctorId: map['doctorId'] as String?,
         patientId: map['patientId'] as String?,
         createdAt: map['createdAt'] is String ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),

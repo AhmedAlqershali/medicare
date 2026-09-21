@@ -42,6 +42,10 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   AccountRole? get currentRole => _session.currentRole;
 
+  void adoptSession(AuthSession session) {
+    _session = session;
+  }
+
   String _mapFirebaseAuthError(FirebaseAuthException exception) {
     switch (exception.code) {
       case 'invalid-email':
@@ -134,6 +138,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           await _firestoreUserProfileRepository.linkOrganizationProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             organizationId: organizationRecord.id,
           );
           _session = AuthSession(

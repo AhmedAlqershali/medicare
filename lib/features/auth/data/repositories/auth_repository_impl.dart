@@ -1,4 +1,5 @@
 import '../../../../core/auth/models/account_role.dart';
+import '../../../../core/auth/services/firebase_auth_repository.dart';
 import '../../domain/entities/user_account.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/firebase_auth_data_source.dart';
@@ -17,6 +18,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: _dataSource.currentUser!.email,
         role: _dataSource.currentUser!.role,
         organizationId: _dataSource.currentUser!.organizationId,
+        clinicId: _dataSource.currentUser!.clinicId,
         doctorId: _dataSource.currentUser!.doctorId,
         patientId: _dataSource.currentUser!.patientId,
       );
@@ -30,23 +32,27 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResult> login({required AccountRole role, required String email, required String password}) async {
     final result = await _dataSource.login(role: role, email: email, password: password);
+    if (result.success) FirebaseAuthRepository.instance.adoptSession(_dataSource.session);
     return AuthResult(success: result.success, message: result.message, user: result.user);
   }
 
   @override
   Future<AuthResult> activateInvitation({required AccountRole role, required String email, required String password}) async {
     final result = await _dataSource.activateInvitation(role: role, email: email, password: password);
+    if (result.success) FirebaseAuthRepository.instance.adoptSession(_dataSource.session);
     return AuthResult(success: result.success, message: result.message, user: result.user);
   }
 
   @override
   Future<AuthResult> activatePatientAccount({required String email, required String password}) async {
     final result = await _dataSource.activatePatientAccount(email: email, password: password);
+    if (result.success) FirebaseAuthRepository.instance.adoptSession(_dataSource.session);
     return AuthResult(success: result.success, message: result.message, user: result.user);
   }
 
   @override
   void logout() {
     _dataSource.logout();
+    FirebaseAuthRepository.instance.logout();
   }
 }

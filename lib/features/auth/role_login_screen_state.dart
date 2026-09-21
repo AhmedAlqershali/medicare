@@ -61,10 +61,6 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   void _createAccount() {
-    if (widget.role == AccountRole.organization) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('المؤسسات تُنشأ من الإدارة. يرجى التواصل مع فريق الإدارة لإنشاء الحساب.')));
-      return;
-    }
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => InvitationActivationScreen(role: widget.role)));
   }
 

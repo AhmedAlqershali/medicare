@@ -7,6 +7,7 @@ class AuthSession {
     this.currentUser,
     this.currentRole,
     this.organizationId,
+    this.clinicId,
     this.doctorId,
     this.patientId,
   });
@@ -17,6 +18,7 @@ class AuthSession {
   final AuthUser? currentUser;
   final AccountRole? currentRole;
   final String? organizationId;
+  final String? clinicId;
   final String? doctorId;
   final String? patientId;
 }

@@ -65,6 +65,15 @@ class FirebaseAuthDataSource {
     }
   }
 
+  Future<User?> _createFirebaseAccount({required String email, required String password}) async {
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email.trim(), password: password);
+      return credential.user;
+    } on FirebaseAuthException catch (exception) {
+      throw FirebaseAuthException(code: exception.code, message: _mapFirebaseAuthError(exception));
+    }
+  }
+
   String _mapFirebaseAuthError(FirebaseAuthException exception) {
     switch (exception.code) {
       case 'invalid-email':
@@ -129,6 +138,35 @@ class FirebaseAuthDataSource {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: normalizedEmail, password: password);
       switch (role) {
         case AccountRole.organization:
+          final invitedProfile = await _userProfileRepository.fetchUserProfile(userCredential.user!.uid);
+          if (invitedProfile?.role == AccountRole.organization && invitedProfile?.organizationId != null) {
+            final invitedOrganization = await _organizationRepository.fetchOrganizationById(invitedProfile!.organizationId!);
+            if (invitedOrganization == null || invitedOrganization.status != AccountStatus.active) {
+              return (success: false, message: 'المؤسسة المرتبطة بهذا الحساب غير موجودة أو غير نشطة.', user: null, currentRole: null);
+            }
+            final user = UserAccount(
+              id: userCredential.user!.uid,
+              name: invitedOrganization.name,
+              email: normalizedEmail,
+              role: AccountRole.organization,
+              organizationId: invitedOrganization.id,
+              clinicId: invitedProfile.clinicId,
+            );
+            _session = AuthSession(
+              isAuthenticated: true,
+              currentUser: AuthUser(
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId,
+                clinicId: user.clinicId,
+              ),
+              currentRole: AccountRole.organization,
+              organizationId: invitedOrganization.id,
+            );
+            return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.organization);
+          }
           final organizationRecord = await _organizationRepository.fetchOrganizationByEmail(normalizedEmail);
           if (organizationRecord == null) {
             return (success: false, message: 'لا يوجد حساب مؤسسة مطابق لهذا البريد.', user: null, currentRole: null);
@@ -143,6 +181,7 @@ class FirebaseAuthDataSource {
           );
           await _userProfileRepository.linkOrganizationProfile(
             uid: userCredential.user!.uid,
+            email: normalizedEmail,
             organizationId: organizationRecord.id,
           );
           final user = _authUserForOrganization(organizationRecord);
@@ -249,9 +288,11 @@ class FirebaseAuthDataSource {
     required String email,
     required String password,
   }) async {
-    final normalizedEmail = email.trim();
+    final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty) return (success: false, message: 'أدخل البريد الإلكتروني المدعو.', user: null, currentRole: null);
     if (password.length < 6) return (success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.', user: null, currentRole: null);
+
+    if (role == AccountRole.organization) return _activateOrganizationInvitation(email: normalizedEmail, password: password);
 
     final organizations = await _organizationRepository.fetchOrganizations();
     Invitation? invitation;
@@ -344,6 +385,57 @@ class FirebaseAuthDataSource {
       );
 
       return (success: true, message: 'تم تفعيل الحساب بنجاح.', user: createdUser, currentRole: role);
+    } on FirebaseAuthException catch (exception) {
+      return (success: false, message: exception.message ?? _mapFirebaseAuthError(exception), user: null, currentRole: null);
+    } on StateError catch (error) {
+      return (success: false, message: error.message, user: null, currentRole: null);
+    }
+  }
+
+  Future<({bool success, String message, UserAccount? user, AccountRole? currentRole})> _activateOrganizationInvitation({
+    required String email,
+    required String password,
+  }) async {
+    User? firebaseUser;
+    try {
+      firebaseUser = await _createFirebaseAccount(email: email, password: password);
+      if (firebaseUser == null) {
+        return (success: false, message: 'تعذر إنشاء حساب المؤسسة في Firebase.', user: null, currentRole: null);
+      }
+      final invitation = await _invitationRepository.fetchPendingInvitationForAuthenticatedEmail(email);
+      if (invitation == null) {
+        await firebaseUser.delete();
+        return (success: false, message: 'لم نجد دعوة مؤسسة صالحة بهذا البريد الإلكتروني.', user: null, currentRole: null);
+      }
+      final organization = await _organizationRepository.fetchOrganizationById(invitation.organizationId);
+      if (organization == null || organization.status != AccountStatus.active) {
+        await firebaseUser.delete();
+        return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة أو غير نشطة.', user: null, currentRole: null);
+      }
+      await _invitationRepository.acceptInvitationForUser(invitation: invitation, uid: firebaseUser.uid);
+
+      final user = UserAccount(
+        id: firebaseUser.uid,
+        name: organization.name,
+        email: email,
+        role: AccountRole.organization,
+        organizationId: invitation.organizationId,
+        clinicId: invitation.clinicId,
+      );
+      _session = AuthSession(
+        isAuthenticated: true,
+        currentUser: AuthUser(
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          organizationId: user.organizationId,
+          clinicId: user.clinicId,
+        ),
+        currentRole: AccountRole.organization,
+        organizationId: invitation.organizationId,
+      );
+      return (success: true, message: 'تم إنشاء حساب المؤسسة بنجاح.', user: user, currentRole: AccountRole.organization);
     } on FirebaseAuthException catch (exception) {
       return (success: false, message: exception.message ?? _mapFirebaseAuthError(exception), user: null, currentRole: null);
     } on StateError catch (error) {

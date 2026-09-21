@@ -22,6 +22,8 @@ class FirestoreUserProfileRepository {
     required String email,
     required AccountRole role,
     String? organizationId,
+    String? clinicId,
+    String? invitationId,
     String? doctorId,
     String? patientId,
   }) async {
@@ -32,13 +34,16 @@ class FirestoreUserProfileRepository {
       email: email.trim(),
       role: role,
       organizationId: organizationId,
+      clinicId: clinicId,
       doctorId: doctorId,
       patientId: patientId,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     );
 
-    await _usersCollection.doc(uid).set(profile.toMap(), SetOptions(merge: true));
+    final profileMap = profile.toMap();
+    if (invitationId != null) profileMap['invitationId'] = invitationId;
+    await _usersCollection.doc(uid).set(profileMap, SetOptions(merge: true));
     return profile;
   }
 
@@ -74,13 +79,20 @@ class FirestoreUserProfileRepository {
 
   Future<void> linkOrganizationProfile({
     required String uid,
+    required String email,
     required String organizationId,
+    String? clinicId,
+    String? invitationId,
   }) async {
-    await _usersCollection.doc(uid).set({
+    final profile = <String, dynamic>{
       'uid': uid,
+      'email': email.trim(),
       'organizationId': organizationId,
+      'clinicId': clinicId,
       'role': AccountRole.organization.name,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+    if (invitationId != null) profile['invitationId'] = invitationId;
+    await _usersCollection.doc(uid).set(profile, SetOptions(merge: true));
   }
 }

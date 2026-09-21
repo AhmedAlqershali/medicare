@@ -11,6 +11,7 @@ import 'invitation_activation_screen.dart';
 class InvitationActivationScreenState extends State<InvitationActivationScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   String? _error;
   bool _loading = false;
 
@@ -18,14 +19,19 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _activate() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    if (!email.contains('@') || password.length < 6) {
+    final confirmPassword = _confirmPasswordController.text;
+    if (!email.contains('@') || password.length < 6 || (widget.role == AccountRole.organization && password != confirmPassword)) {
       setState(() => _error = widget.role == AccountRole.patient ? 'أدخل بريد المريض الصحيح وكلمة مرور من ٦ أحرف أو أكثر.' : 'أدخل البريد المدعو وكلمة مرور من ٦ أحرف أو أكثر.');
+      if (widget.role == AccountRole.organization && password != confirmPassword) {
+        setState(() => _error = 'كلمتا المرور غير متطابقتين.');
+      }
       return;
     }
     setState(() {
@@ -65,6 +71,10 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
           CustomTextField(label: widget.role == AccountRole.patient ? 'البريد الإلكتروني للمريض' : 'البريد الإلكتروني المدعو', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next),
           const SizedBox(height: AppSpacing.md),
           CustomTextField(label: 'كلمة مرور جديدة', prefixIcon: Icons.lock_outline_rounded, controller: _passwordController, obscureText: true, textInputAction: TextInputAction.done, onSubmitted: (_) => _activate()),
+          if (widget.role == AccountRole.organization) ...[
+            const SizedBox(height: AppSpacing.md),
+            CustomTextField(label: 'تأكيد كلمة المرور', prefixIcon: Icons.verified_user_outlined, controller: _confirmPasswordController, obscureText: true, textInputAction: TextInputAction.done, onSubmitted: (_) => _activate()),
+          ],
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),

@@ -7,6 +7,7 @@ class AuthUser {
     required this.email,
     required this.role,
     this.organizationId,
+    this.clinicId,
     this.doctorId,
     this.patientId,
   });
@@ -16,6 +17,7 @@ class AuthUser {
   final String email;
   final AccountRole role;
   final String? organizationId;
+  final String? clinicId;
   final String? doctorId;
   final String? patientId;
 }

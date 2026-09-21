@@ -49,6 +49,24 @@ class FirestoreInvitationRepository implements InvitationRepository {
     return invitation;
   }
 
+  Future<Invitation?> fetchPendingInvitationForAuthenticatedEmail(String email) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) return null;
+    final snapshot = await _service
+        .invitationCollectionGroup()
+        .where('recipientEmail', isEqualTo: normalizedEmail)
+        .where('role', isEqualTo: AccountRole.organization.name)
+        .where('status', isEqualTo: InvitationStatus.pending.name)
+        .limit(2)
+        .get();
+    if (snapshot.docs.length > 1) {
+      throw StateError('تم العثور على أكثر من دعوة مؤسسة صالحة لهذا البريد الإلكتروني.');
+    }
+    if (snapshot.docs.isEmpty) return null;
+    final invitation = Invitation.fromMap(snapshot.docs.single.data());
+    return invitation.isCurrentlyValid ? invitation : null;
+  }
+
   Future<List<Invitation>> fetchInvitationsForOrganization(String organizationId, {AccountRole? role}) async {
     Query<Map<String, dynamic>> query = _service.invitationCollection(organizationId);
     if (role != null) {
@@ -63,18 +81,19 @@ class FirestoreInvitationRepository implements InvitationRepository {
 
   Future<void> createInvitation({required String organizationId, required Invitation invitation}) async {
     _validateInvitationOrganization(organizationId, invitation);
-    if (invitation.role != AccountRole.doctor) {
-      throw StateError('Only doctor invitations are supported by Firestore.');
-    }
     final safeInvitation = Invitation(
       id: invitation.id,
-      email: invitation.email.trim(),
+      email: invitation.email.trim().toLowerCase(),
       role: invitation.role,
       invitedBy: invitation.invitedBy.trim(),
       organizationId: organizationId,
       status: invitation.status,
       doctorId: invitation.doctorId,
       patientId: invitation.patientId,
+      clinicId: invitation.clinicId,
+      expiresAt: invitation.expiresAt,
+      userId: invitation.userId,
+      acceptedAt: invitation.acceptedAt,
     );
     await _service.invitationDocument(organizationId, safeInvitation.id).set(safeInvitation.toMap(), SetOptions(merge: true));
   }
@@ -103,6 +122,40 @@ class FirestoreInvitationRepository implements InvitationRepository {
     final accepted = invitation.copyWith(status: InvitationStatus.accepted);
     await _service.invitationDocument(organizationId, invitationId).set(accepted.toMap(), SetOptions(merge: true));
     return accepted;
+  }
+
+  Future<void> acceptInvitationForUser({required Invitation invitation, required String uid}) async {
+    if (!invitation.isCurrentlyValid) {
+      throw StateError('هذه الدعوة غير صالحة أو تم استخدامها من قبل.');
+    }
+    final invitationReference = _service.invitationDocument(invitation.organizationId, invitation.id);
+    final userReference = _service.firestore.collection('users').doc(uid);
+    await _service.firestore.runTransaction((transaction) async {
+      final invitationSnapshot = await transaction.get(invitationReference);
+      final userSnapshot = await transaction.get(userReference);
+      final currentInvitation = invitationSnapshot.exists && invitationSnapshot.data() != null ? Invitation.fromMap(invitationSnapshot.data()!) : null;
+      if (currentInvitation == null || !currentInvitation.isCurrentlyValid) {
+        throw StateError('هذه الدعوة غير صالحة أو تم استخدامها من قبل.');
+      }
+      if (userSnapshot.exists) {
+        throw StateError('يوجد حساب مستخدم مرتبط بهذا المعرف بالفعل.');
+      }
+      transaction.set(userReference, {
+        'uid': uid,
+        'email': invitation.email,
+        'role': AccountRole.organization.name,
+        'organizationId': invitation.organizationId,
+        'clinicId': invitation.clinicId,
+        'invitationId': invitation.id,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      transaction.update(invitationReference, {
+        'status': InvitationStatus.accepted.name,
+        'userId': uid,
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   Future<Invitation> rejectInvitation({required String organizationId, required String invitationId}) async {
@@ -143,9 +196,6 @@ class FirestoreInvitationRepository implements InvitationRepository {
     }
     if (invitation.organizationId != organizationId) {
       throw StateError('Invitation organization cannot be changed from the client.');
-    }
-    if (invitation.role != AccountRole.doctor) {
-      throw StateError('Only doctor invitations are allowed in the Firestore invitation flow.');
     }
   }
 }
