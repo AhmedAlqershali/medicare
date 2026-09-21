@@ -17,7 +17,9 @@ class FirestorePatientRepository implements PatientRepository {
   Future<List<Patient>> patientsForDoctor(String doctorId) => fetchPatientsForDoctor(doctorId);
 
   Future<List<Patient>> fetchPatientsForDoctor(String doctorId) async {
-    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).get();
+    final doctor = await fetchDoctorById(doctorId);
+    if (doctor == null || doctor.organizationId.isEmpty) return [];
+    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).where('organizationId', isEqualTo: doctor.organizationId).get();
     return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
   }
 
@@ -27,13 +29,17 @@ class FirestorePatientRepository implements PatientRepository {
   @override
   Future<Patient> createPatient({required String doctorId, required String name, required String email, required String invitedBy}) async {
     final trimmedEmail = email.trim();
+    final doctor = await fetchDoctorById(doctorId);
+    if (doctor == null || doctor.organizationId.isEmpty) {
+      throw StateError('لم يتم العثور على مؤسسة الطبيب قبل إنشاء سجل المريض.');
+    }
     final now = DateTime.now();
     final patient = Patient(
       id: patientIdFor(doctorId, trimmedEmail),
       name: name.trim(),
       email: trimmedEmail,
       doctorId: doctorId,
-      organizationId: '',
+      organizationId: doctor.organizationId,
       status: AccountStatus.pending,
       accountActivated: false,
       initials: _initials(name),

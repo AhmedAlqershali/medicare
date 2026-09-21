@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/auth/services/firebase_auth_repository.dart';
 import '../../../../core/firestore/repositories/firestore_appointment_repository.dart';
@@ -13,10 +14,14 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) return const [];
     final patientId = FirebaseAuthRepository.instance.session.patientId;
-    if (patientId == null || patientId.isEmpty) return const [];
-    final appointments = await FirestoreAppointmentRepository.instance.fetchAppointments(organizationId);
+    final patientUid = FirebaseAuth.instance.currentUser?.uid;
+    if (patientId == null || patientId.isEmpty || patientUid == null || patientUid.isEmpty) return const [];
+    final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForPatient(
+      organizationId: organizationId,
+      patientId: patientId,
+      patientUid: patientUid,
+    );
     return appointments
-      .where((appointment) => appointment['patientId'] == patientId)
         .map(_fromMap)
         .toList();
   }

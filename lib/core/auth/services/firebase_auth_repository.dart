@@ -214,16 +214,7 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   Future<Invitation?> _findPendingInvitationForEmail({required AccountRole role, required String email}) async {
-    final organizations = await _firestoreOrganizationRepository.fetchOrganizations();
-    for (final organization in organizations) {
-      final invitations = await _firestoreInvitationRepository.fetchInvitationsForOrganization(organization.id, role: role);
-      for (final invitation in invitations) {
-        if (invitation.email.trim().toLowerCase() == email.trim().toLowerCase() && invitation.status == InvitationStatus.pending) {
-          return invitation;
-        }
-      }
-    }
-    return null;
+    return _firestoreInvitationRepository.fetchPendingInvitationForEmailAndRole(email: email, role: role);
   }
 
   @override
@@ -232,23 +223,23 @@ class FirebaseAuthRepository implements AuthRepository {
     if (normalizedEmail.isEmpty) return const AuthResult(success: false, message: 'أدخل البريد الإلكتروني المدعو.');
     if (password.length < 6) return const AuthResult(success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.');
 
-    final invitation = await _findPendingInvitationForEmail(role: role, email: normalizedEmail);
-    if (invitation == null) {
-      return const AuthResult(success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.');
-    }
-
-    final organization = await _firestoreOrganizationRepository.fetchOrganizationById(invitation.organizationId);
-    if (organization == null) {
-      return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.');
-    }
-    if (organization.status != AccountStatus.active) {
-      return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.');
-    }
-
     try {
       final userCredential = await _createFirebaseAccountIfNeeded(email: normalizedEmail, password: password);
       if (userCredential == null) {
         return const AuthResult(success: false, message: 'تعذر إنشاء حساب المستخدم في Firebase.');
+      }
+
+      final invitation = await _findPendingInvitationForEmail(role: role, email: normalizedEmail);
+      if (invitation == null) {
+        return const AuthResult(success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.');
+      }
+
+      final organization = await _firestoreOrganizationRepository.fetchOrganizationById(invitation.organizationId);
+      if (organization == null) {
+        return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.');
+      }
+      if (organization.status != AccountStatus.active) {
+        return const AuthResult(success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.');
       }
 
       if (role == AccountRole.doctor) {
@@ -312,27 +303,27 @@ class FirebaseAuthRepository implements AuthRepository {
     if (normalizedEmail.isEmpty) return const AuthResult(success: false, message: 'أدخل البريد الإلكتروني الخاص بالمريض.');
     if (password.length < 6) return const AuthResult(success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.');
 
-    final patientRecord = await _firestorePatientRepository.fetchPatientByEmail(normalizedEmail);
-    if (patientRecord == null) {
-      return const AuthResult(success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني. استخدم نفس البريد الذي أضافه الطبيب.');
-    }
-    if (patientRecord.accountActivated) {
-      return const AuthResult(success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.');
-    }
-
-    final doctorRecord = await _firestoreDoctorRepository.fetchDoctorById(patientRecord.doctorId);
-    if (doctorRecord == null) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير موجود.');
-    if (doctorRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير نشط.');
-
-    final organizationRecord = await _firestoreOrganizationRepository.fetchOrganizationById(patientRecord.organizationId);
-    if (organizationRecord == null) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير موجودة.');
-    if (organizationRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير نشطة.');
-
     try {
       final userCredential = await _createFirebaseAccountIfNeeded(email: normalizedEmail, password: password);
       if (userCredential == null) {
         return const AuthResult(success: false, message: 'تعذر إنشاء حساب المريض في Firebase.');
       }
+      final patientRecord = await _firestorePatientRepository.fetchPatientByEmail(normalizedEmail);
+      if (patientRecord == null) {
+        return const AuthResult(success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني. استخدم نفس البريد الذي أضافه الطبيب.');
+      }
+      if (patientRecord.accountActivated) {
+        return const AuthResult(success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.');
+      }
+
+      final doctorRecord = await _firestoreDoctorRepository.fetchDoctorById(patientRecord.doctorId);
+      if (doctorRecord == null) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير موجود.');
+      if (doctorRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'الطبيب المرتبط بهذا المريض غير نشط.');
+
+      final organizationRecord = await _firestoreOrganizationRepository.fetchOrganizationById(patientRecord.organizationId);
+      if (organizationRecord == null) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير موجودة.');
+      if (organizationRecord.status != AccountStatus.active) return const AuthResult(success: false, message: 'المؤسسة المرتبطة بهذا المريض غير نشطة.');
+
       if (patientRecord.firebaseUid != null && patientRecord.firebaseUid != userCredential.uid) {
         return const AuthResult(success: false, message: 'هذا المريض مرتبط بالفعل بحساب مستخدم آخر ولا يمكن استخدامه هنا.');
       }

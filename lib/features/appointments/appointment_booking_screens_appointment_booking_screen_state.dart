@@ -118,6 +118,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
         appointment: {
           'id': appointmentId,
           'patientId': patientId,
+          'patientUid': FirebaseAuth.instance.currentUser?.uid,
           'doctorId': widget.bookingData.doctorId,
           'doctorName': widget.bookingData.doctorName,
           'doctorInitials': widget.bookingData.doctorInitials,

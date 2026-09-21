@@ -74,6 +74,24 @@ class FirestoreInvitationRepository implements InvitationRepository {
     return invitation.isCurrentlyValid ? invitation : null;
   }
 
+  Future<Invitation?> fetchPendingInvitationForEmailAndRole({required String email, required AccountRole role}) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) return null;
+    final snapshot = await _service
+        .invitationCollectionGroup()
+        .where('recipientEmail', isEqualTo: normalizedEmail)
+        .where('role', isEqualTo: role.name)
+        .where('status', isEqualTo: InvitationStatus.pending.name)
+        .limit(2)
+        .get();
+    if (snapshot.docs.length > 1) {
+      throw StateError('تم العثور على أكثر من دعوة صالحة لهذا البريد الإلكتروني.');
+    }
+    if (snapshot.docs.isEmpty) return null;
+    final invitation = Invitation.fromMap(snapshot.docs.single.data());
+    return invitation.isCurrentlyValid ? invitation : null;
+  }
+
   Future<List<Invitation>> fetchInvitationsForOrganization(String organizationId, {AccountRole? role}) async {
     Query<Map<String, dynamic>> query = _service.invitationCollection(organizationId);
     if (role != null) {

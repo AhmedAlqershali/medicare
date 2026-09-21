@@ -14,8 +14,8 @@ class DoctorAppointmentsRepositoryImpl implements DoctorAppointmentsRepository {
     final organizationId = session.organizationId;
     final doctorId = session.doctorId;
     if (organizationId == null || doctorId == null || organizationId.isEmpty || doctorId.isEmpty) return const [];
-    final appointments = await FirestoreAppointmentRepository.instance.fetchAppointments(organizationId);
-    return appointments.where((appointment) => appointment['doctorId'] == doctorId).map(_fromMap).toList();
+    final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: doctorId);
+    return appointments.map(_fromMap).toList();
   }
 
   DoctorAppointment _fromMap(Map<String, dynamic> appointment) => DoctorAppointment(

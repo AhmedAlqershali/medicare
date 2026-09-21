@@ -294,35 +294,24 @@ class FirebaseAuthDataSource {
 
     if (role == AccountRole.organization) return _activateOrganizationInvitation(email: normalizedEmail, password: password);
 
-    final organizations = await _organizationRepository.fetchOrganizations();
-    Invitation? invitation;
-    for (final organization in organizations) {
-      final invitations = await _invitationRepository.fetchInvitationsForOrganization(organization.id, role: role);
-      for (final item in invitations) {
-        if (item.email.trim().toLowerCase() == normalizedEmail.toLowerCase() && item.status == InvitationStatus.pending) {
-          invitation = item;
-          break;
-        }
-      }
-      if (invitation != null) break;
-    }
-
-    if (invitation == null) {
-      return (success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.', user: null, currentRole: null);
-    }
-
-    final organization = await _organizationRepository.fetchOrganizationById(invitation.organizationId);
-    if (organization == null) {
-      return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.', user: null, currentRole: null);
-    }
-    if (organization.status != AccountStatus.active) {
-      return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.', user: null, currentRole: null);
-    }
-
     try {
       final userCredential = await createFirebaseAccountIfNeeded(email: normalizedEmail, password: password);
       if (userCredential == null) {
         return (success: false, message: 'تعذر إنشاء حساب المستخدم في Firebase.', user: null, currentRole: null);
+      }
+
+      final invitation = await _invitationRepository.fetchPendingInvitationForEmailAndRole(email: normalizedEmail, role: role);
+
+      if (invitation == null) {
+        return (success: false, message: 'لم نجد دعوة بهذا البريد الإلكتروني.', user: null, currentRole: null);
+      }
+
+      final organization = await _organizationRepository.fetchOrganizationById(invitation.organizationId);
+      if (organization == null) {
+        return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير موجودة.', user: null, currentRole: null);
+      }
+      if (organization.status != AccountStatus.active) {
+        return (success: false, message: 'المؤسسة المرتبطة بالدعوة غير نشطة.', user: null, currentRole: null);
       }
 
       if (role == AccountRole.doctor) {
@@ -347,16 +336,7 @@ class FirebaseAuthDataSource {
         );
       }
 
-      final updatedInvitation = Invitation(
-        id: invitation.id,
-        email: invitation.email,
-        role: invitation.role,
-        invitedBy: invitation.invitedBy,
-        organizationId: invitation.organizationId,
-        status: InvitationStatus.accepted,
-        doctorId: invitation.doctorId,
-        patientId: invitation.patientId,
-      );
+      final updatedInvitation = invitation.copyWith(status: InvitationStatus.accepted, userId: userCredential.uid, acceptedAt: DateTime.now());
       await _invitationRepository.saveInvitation(organizationId: invitation.organizationId, invitation: updatedInvitation);
 
       final createdUser = UserAccount(

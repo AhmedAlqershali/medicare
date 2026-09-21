@@ -21,7 +21,7 @@ class FirestoreAppointmentRepository {
   }
 
   Future<List<Map<String, dynamic>>> fetchAppointments(String organizationId) async {
-    final snapshot = await _service.appointmentCollection(organizationId).get();
+    final snapshot = await _service.appointmentCollection(organizationId).where('organizationId', isEqualTo: organizationId).get();
     return snapshot.docs
         .map((document) => document.data())
         .where((appointment) => appointment['organizationId'] == null || appointment['organizationId'] == organizationId)
@@ -29,6 +29,23 @@ class FirestoreAppointmentRepository {
   }
 
   Future<List<Map<String, dynamic>>> fetchAppointmentsForOrganization(String organizationId) => fetchAppointments(organizationId);
+
+  Future<List<Map<String, dynamic>>> fetchAppointmentsForPatient({required String organizationId, required String patientId, required String patientUid}) async {
+    final snapshot = await _service.appointmentCollection(organizationId)
+        .where('organizationId', isEqualTo: organizationId)
+        .where('patientId', isEqualTo: patientId)
+        .where('patientUid', isEqualTo: patientUid)
+        .get();
+    return snapshot.docs.map((document) => document.data()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAppointmentsForDoctor({required String organizationId, required String doctorId}) async {
+    final snapshot = await _service.appointmentCollection(organizationId)
+        .where('organizationId', isEqualTo: organizationId)
+        .where('doctorId', isEqualTo: doctorId)
+        .get();
+    return snapshot.docs.map((document) => document.data()).toList();
+  }
 
   Future<Map<String, dynamic>> createAppointment({required String organizationId, required Map<String, dynamic> appointment}) async {
     final appointmentId = (appointment['id'] as String? ?? '').trim();
