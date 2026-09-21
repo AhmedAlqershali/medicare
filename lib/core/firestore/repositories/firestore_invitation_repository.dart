@@ -15,10 +15,17 @@ class FirestoreInvitationRepository implements InvitationRepository {
   final FirestoreService _service;
 
   @override
-  List<Invitation> invitationsFor({required String organizationId, AccountRole? role}) => const [];
+  Future<List<Invitation>> invitationsFor({required String organizationId, AccountRole? role}) => fetchInvitationsForOrganization(organizationId, role: role);
 
   @override
-  Invitation? pendingInvitation({required AccountRole role, required String email}) => null;
+  Future<Invitation?> pendingInvitation({required AccountRole role, required String email}) async {
+    final invitations = await fetchInvitationsForOrganization(organizationId, role: role);
+    final normalizedEmail = email.trim().toLowerCase();
+    for (final invitation in invitations) {
+      if (invitation.status == InvitationStatus.pending && invitation.email.trim().toLowerCase() == normalizedEmail) return invitation;
+    }
+    return null;
+  }
 
   Future<Invitation?> fetchInvitationById(String organizationId, String invitationId) async {
     if (organizationId.trim().isEmpty || invitationId.trim().isEmpty) return null;

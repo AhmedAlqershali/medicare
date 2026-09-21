@@ -3,11 +3,28 @@ part of 'doctor_patients_screen.dart';
 class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
+  List<DoctorPatient> _patients = const [];
 
-  List<DoctorPatient> _visiblePatients() {
+  @override
+  void initState() {
+    super.initState();
+    _loadPatients();
+  }
+
+  Future<void> _loadPatients() async {
     final doctorId = FirebaseAuthRepository.instance.session.doctorId ?? '';
-    final patients = FirestorePatientRepository.instance.patientsForDoctor(doctorId);
-    return patients.map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: 'غير محدد', gender: 'غير محدد', lastAppointment: 'لا يوجد موعد مسجل', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: AppColors.mint, notes: 'بيانات المريض مرتبطة بالطبيب الحالي فقط.')).toList();
+    if (doctorId.isEmpty) return;
+    List<Patient> patients;
+    try {
+      patients = await FirestorePatientRepository.instance.fetchPatientsForDoctor(doctorId);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _patients = patients.map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: '', gender: '', lastAppointment: '', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: Colors.transparent, notes: '')).toList();
+    });
   }
 
   @override
@@ -15,7 +32,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final patients = _visiblePatients()
+    final patients = _patients
         .where((patient) => patient.name.contains(_query.trim()) || patient.status.contains(_query.trim()))
         .toList();
     final slivers = <Widget>[

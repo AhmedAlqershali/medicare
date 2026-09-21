@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../auth/models/account_status.dart';
 import '../../auth/models/organization.dart';
@@ -14,10 +15,14 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
   final FirestoreService _service;
 
   @override
-  Organization? get currentOrganization => null;
+  Future<Organization?> currentOrganization() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) return null;
+    return fetchOrganizationByUid(uid);
+  }
 
   @override
-  List<Organization> visibleOrganizations() => const [];
+  Future<List<Organization>> visibleOrganizations() => fetchOrganizations();
 
   Future<Organization?> fetchOrganizationById(String organizationId) async {
     final snapshot = await _service.organizationDocument(organizationId).get();

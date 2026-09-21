@@ -2,7 +2,7 @@ part of 'appointments_screens.dart';
 
 class AppointmentCard extends StatelessWidget {
   const AppointmentCard({super.key, required this.appointment, required this.onDetails, this.onRebook});
-  final MockAppointment appointment;
+  final AppointmentData appointment;
   final VoidCallback onDetails;
   final VoidCallback? onRebook;
 

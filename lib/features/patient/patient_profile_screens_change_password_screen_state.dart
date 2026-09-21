@@ -6,6 +6,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _confirmController = TextEditingController();
   final Map<String, String> _errors = {};
   bool _success = false;
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -15,7 +17,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void _changePassword() {
+  Future<void> _changePassword() async {
     final errors = <String, String>{};
     if (_currentController.text.isEmpty) errors['current'] = 'أدخل كلمة المرور الحالية';
     if (_newController.text.length < 6) errors['new'] = 'يجب أن تتكون من 6 أحرف على الأقل';
@@ -24,8 +26,41 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _errors
         ..clear()
         ..addAll(errors);
-      _success = errors.isEmpty;
+      _success = false;
     });
+    if (errors.isNotEmpty) return;
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email;
+    if (user == null || email == null || email.isEmpty) {
+      setState(() => _error = 'لا توجد جلسة Firebase نشطة.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final credential = EmailAuthProvider.credential(email: email, password: _currentController.text);
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(_newController.text);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _success = true;
+      });
+    } on FirebaseAuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.message ?? 'تعذر تغيير كلمة المرور.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    }
   }
 
   @override
@@ -41,10 +76,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               const SizedBox(height: AppSpacing.md),
               CustomTextField(label: 'تأكيد كلمة المرور الجديدة', prefixIcon: Icons.verified_user_outlined, controller: _confirmController, obscureText: true, errorText: _errors['confirm'], textInputAction: TextInputAction.done),
               const SizedBox(height: AppSpacing.xl),
-              PrimaryButton(label: 'تغيير كلمة المرور', icon: Icons.check_rounded, onPressed: _changePassword),
+              PrimaryButton(label: 'تغيير كلمة المرور', icon: Icons.check_rounded, onPressed: _changePassword, isLoading: _loading),
+              if (_error != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
+              ],
               if (_success) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text('تم تغيير كلمة المرور محلياً بنجاح.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.success, fontWeight: FontWeight.w700)),
+                Text('تم تغيير كلمة المرور بنجاح.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.success, fontWeight: FontWeight.w700)),
               ],
             ]),
           ),

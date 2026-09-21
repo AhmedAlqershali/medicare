@@ -2,7 +2,7 @@ part of 'appointments_screens.dart';
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   AppointmentStatus _selectedStatus = AppointmentStatus.upcoming;
-  late List<MockAppointment> _appointments = const [];
+  late List<AppointmentData> _appointments = const [];
 
   @override
   void initState() {
@@ -11,16 +11,23 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Future<void> _loadAppointments() async {
-    final appointments = await const AppointmentsRepositoryImpl().getAppointments();
+    List<AppointmentEntity> appointments;
+    try {
+      appointments = await const AppointmentsRepositoryImpl().getAppointments();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      return;
+    }
     if (!mounted) return;
     setState(() {
-      _appointments = appointments.map(_toMockAppointment).toList();
+      _appointments = appointments.map(_toAppointmentData).toList();
     });
   }
 
-  List<MockAppointment> get _visibleAppointments => _appointments.where((appointment) => appointment.status == _selectedStatus).toList();
+    List<AppointmentData> get _visibleAppointments => _appointments.where((appointment) => appointment.status == _selectedStatus).toList();
 
-  MockAppointment _toMockAppointment(AppointmentEntity entity) => MockAppointment(
+    AppointmentData _toAppointmentData(AppointmentEntity entity) => AppointmentData(
+      id: entity.id,
         doctorName: entity.doctorName,
         doctorInitials: entity.doctorInitials,
         specialty: entity.specialty,
@@ -40,7 +47,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         AppointmentEntityStatus.cancelled => AppointmentStatus.cancelled,
       };
 
-  AppointmentBookingData _bookingData(MockAppointment appointment) => AppointmentBookingData(
+  AppointmentBookingData _bookingData(AppointmentData appointment) => AppointmentBookingData(
+      doctorId: '',
         doctorName: appointment.doctorName,
         doctorInitials: appointment.doctorInitials,
         specialty: appointment.specialty,
@@ -86,18 +94,30 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         ),
       );
 
-  void _openDetails(MockAppointment appointment) {
+  void _openDetails(AppointmentData appointment) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentDetailsScreen(appointment: appointment, onCancelled: () => _cancelAppointment(appointment))));
   }
 
-  void _cancelAppointment(MockAppointment appointment) {
+  Future<void> _cancelAppointment(AppointmentData appointment) async {
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (organizationId == null || appointment.id.isEmpty) return;
+    try {
+      await FirestoreAppointmentRepository.instance.saveAppointment(
+        organizationId: organizationId,
+        appointment: {'id': appointment.id, 'status': AppointmentStatus.cancelled.name},
+      );
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      return;
+    }
+    if (!mounted) return;
     setState(() {
       final index = _appointments.indexOf(appointment);
       if (index != -1) _appointments[index] = appointment.copyWith(status: AppointmentStatus.cancelled);
     });
   }
 
-  void _rebook(MockAppointment appointment) {
+  void _rebook(AppointmentData appointment) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentBookingScreen(bookingData: _bookingData(appointment))));
   }
 

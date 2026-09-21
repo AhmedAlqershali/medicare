@@ -18,7 +18,13 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
   }
 
   Future<void> _loadAppointments() async {
-    final items = await DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    List<DoctorAppointment> items;
+    try {
+      items = await DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _appointments = items;
@@ -40,7 +46,7 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
                   const SizedBox(height: 3),
                   Text('إليك ملخص يومك الطبي', style: Theme.of(context).textTheme.bodyMedium),
                 ])),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_rounded), tooltip: 'الإشعارات'),
+                IconButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا توجد إشعارات جديدة.'))), icon: const Icon(Icons.notifications_none_rounded), tooltip: 'الإشعارات'),
               ]),
               const SizedBox(height: AppSpacing.xl),
               Text('نظرة اليوم', style: Theme.of(context).textTheme.titleMedium),

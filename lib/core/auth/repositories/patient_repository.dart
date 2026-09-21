@@ -1,7 +1,7 @@
 import '../models/patient.dart';
 
 abstract class PatientRepository {
-  List<Patient> patientsForDoctor(String doctorId);
-  Patient? patientForId(String patientId);
-  Patient createPatient({required String doctorId, required String name, required String email, required String invitedBy});
+  Future<List<Patient>> patientsForDoctor(String doctorId);
+  Future<Patient?> patientForId(String patientId);
+  Future<Patient> createPatient({required String doctorId, required String name, required String email, required String invitedBy});
 }

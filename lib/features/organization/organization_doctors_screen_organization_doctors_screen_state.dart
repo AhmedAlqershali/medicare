@@ -7,7 +7,19 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   String _selectedSpecialty = 'الكل';
   String _selectedClinic = 'الكل';
   String _query = '';
-  late List<OrganizationDoctor> _doctors = _visibleDoctors();
+  List<OrganizationDoctor> _doctors = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+  }
+
+  Future<void> _loadDoctors() async {
+    final doctors = await const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors();
+    if (!mounted) return;
+    setState(() => _doctors = doctors);
+  }
 
   List<OrganizationDoctor> get _filteredDoctors => _doctors.where((doctor) {
     final query = _query.trim();
@@ -16,13 +28,6 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
     final matchesSearch = query.isEmpty || doctor.name.contains(query) || doctor.specialty.contains(query) || doctor.clinic.contains(query);
     return matchesSpecialty && matchesClinic && matchesSearch;
   }).toList();
-
-  List<OrganizationDoctor> _visibleDoctors() {
-    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null) return const [];
-    final organization = FirestoreOrganizationRepository.instance;
-    return FirestoreDoctorRepository.instance.doctorsForOrganization(organizationId).map((doctor) => OrganizationDoctor(id: doctor.id, name: doctor.name, initials: doctor.initials, specialty: doctor.specialty, clinic: organization.currentOrganization?.name ?? 'المؤسسة الطبية', phone: 'غير متاح', email: doctor.email, status: doctor.status == AccountStatus.active ? 'نشط' : 'دعوة معلقة', avatarColor: AppColors.sky, scheduleSummary: 'سيتم تحديد الجدول بعد تفعيل الحساب')).toList();
-  }
 
   @override
   void dispose() {
@@ -120,6 +125,6 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
 
   Future<void> _openAddDoctor() async {
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AddDoctorScreen()));
-    if (mounted) setState(() => _doctors = _visibleDoctors());
+    if (mounted) await _loadDoctors();
   }
 }

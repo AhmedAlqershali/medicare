@@ -1,7 +1,33 @@
 part of 'organization_profile_screens.dart';
 
 class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
-  var _profile = const OrganizationProfile(name: 'مؤسسة Medicare الطبية', email: 'admin@medicare.sa', phone: '055 222 3344', location: 'الرياض، المملكة العربية السعودية', clinicsCount: 6);
+  var _profile = const OrganizationProfile(name: '', email: '', phone: '', location: '', clinicsCount: 0);
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (organizationId == null || organizationId.isEmpty) {
+      if (mounted) setState(() => _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.');
+      return;
+    }
+    try {
+      final organization = await FirestoreOrganizationRepository.instance.fetchOrganizationById(organizationId);
+      if (!mounted) return;
+      if (organization == null) {
+        setState(() => _error = 'لم يتم العثور على ملف المؤسسة.');
+        return;
+      }
+      setState(() => _profile = OrganizationProfile(name: organization.name, email: organization.email, phone: organization.phone, location: organization.location, clinicsCount: 0));
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -10,6 +36,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (_error != null) Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
               AppCard(
                 child: Row(children: [
                   const AppAvatar(initials: 'م م', size: 72, backgroundColor: AppColors.sky),
@@ -33,7 +60,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
               const SectionHeader(title: 'الإعدادات'),
               const SizedBox(height: AppSpacing.sm),
               _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف', onTap: _editProfile),
-              _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context: context, message: 'إعدادات الإشعارات قيد التطوير محلياً')),
+              _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context: context, message: 'لا توجد إشعارات جديدة.')),
               _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context: context, message: 'تم ضبط المظهر على الوضع الفاتح')),
               _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context: context, message: 'سيتم التواصل معك في أقرب وقت')),
               _SettingTile(icon: Icons.info_outline, title: 'عن Medicare', onTap: () => _showMessage(context: context, message: 'Medicare منصة رعاية صحية حديثة')),
@@ -45,7 +72,27 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
 
   Future<void> _editProfile() async {
     final updated = await Navigator.of(context).push<OrganizationProfile>(MaterialPageRoute(builder: (_) => OrganizationProfileFormScreen(profile: _profile)));
-    if (updated != null && mounted) setState(() => _profile = updated);
+    if (updated == null || !mounted) return;
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (organizationId == null || organizationId.isEmpty) return;
+    try {
+      final organization = await FirestoreOrganizationRepository.instance.fetchOrganizationById(organizationId);
+      if (organization == null) throw StateError('لم يتم العثور على ملف المؤسسة.');
+      await FirestoreOrganizationRepository.instance.saveOrganization(Organization(
+        id: organization.id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        location: updated.location,
+        status: organization.status,
+        firebaseUid: organization.firebaseUid,
+        createdAt: organization.createdAt,
+        updatedAt: DateTime.now(),
+      ));
+      if (mounted) setState(() => _profile = updated);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
   }
 
   static void _showMessage({required BuildContext context, required String message}) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

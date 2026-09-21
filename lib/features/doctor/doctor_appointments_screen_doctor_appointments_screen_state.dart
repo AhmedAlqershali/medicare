@@ -11,7 +11,13 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
   }
 
   Future<void> _loadAppointments() async {
-    final appointments = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    List<DoctorAppointment> appointments;
+    try {
+      appointments = await const DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _appointments = appointments;

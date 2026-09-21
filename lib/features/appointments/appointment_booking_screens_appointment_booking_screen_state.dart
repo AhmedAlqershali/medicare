@@ -6,6 +6,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   String? _selectedTime;
   String _appointmentType = 'زيارة في العيادة';
   String? _validationMessage;
+  bool _loading = false;
 
   static const _dates = [
     AppointmentDate(day: 'الأحد', number: '٢٩', month: 'سبتمبر'),
@@ -90,7 +91,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                 Text(_validationMessage!, style: const TextStyle(color: Color(0xFFC84C4C), fontSize: 13, fontWeight: FontWeight.w700)),
               ],
               const SizedBox(height: AppSpacing.lg),
-              SizedBox(width: double.infinity, child: PrimaryButton(label: _selectedDate == null || _selectedTime == null ? 'اختر التاريخ والوقت' : 'تأكيد الموعد', icon: Icons.check_circle_outline, onPressed: _selectedDate == null || _selectedTime == null ? _validateSelection : _confirmAppointment)),
+              SizedBox(width: double.infinity, child: PrimaryButton(label: _selectedDate == null || _selectedTime == null ? 'اختر التاريخ والوقت' : 'تأكيد الموعد', icon: Icons.check_circle_outline, onPressed: _selectedDate == null || _selectedTime == null ? _validateSelection : _confirmAppointment, isLoading: _loading)),
             ]),
           ),
         ),
@@ -98,7 +99,47 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
 
   void _validateSelection() => setState(() => _validationMessage = _selectedDate == null ? 'يرجى اختيار التاريخ' : 'يرجى اختيار الوقت');
 
-  void _confirmAppointment() {
-    Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => AppointmentConfirmationScreen(data: widget.bookingData, date: _dates[_selectedDate!], time: _selectedTime!)));
+  Future<void> _confirmAppointment() async {
+    final session = FirebaseAuthRepository.instance.session;
+    final organizationId = session.organizationId;
+    final patientId = session.patientId;
+    if (organizationId == null || patientId == null || widget.bookingData.doctorId.isEmpty) {
+      setState(() => _validationMessage = 'تعذر تحديد بيانات الحساب أو الطبيب. أعد تسجيل الدخول وحاول مرة أخرى.');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _validationMessage = null;
+    });
+    try {
+      final appointmentId = 'appointment-${DateTime.now().microsecondsSinceEpoch}';
+      await FirestoreAppointmentRepository.instance.createAppointment(
+        organizationId: organizationId,
+        appointment: {
+          'id': appointmentId,
+          'patientId': patientId,
+          'doctorId': widget.bookingData.doctorId,
+          'doctorName': widget.bookingData.doctorName,
+          'doctorInitials': widget.bookingData.doctorInitials,
+          'specialty': widget.bookingData.specialty,
+          'clinicName': widget.bookingData.clinicName,
+          'location': widget.bookingData.location,
+          'date': '${_dates[_selectedDate!].day} ${_dates[_selectedDate!].number} ${_dates[_selectedDate!].month}',
+          'time': _selectedTime,
+          'type': _appointmentType,
+          'status': 'upcoming',
+          'notes': _notesController.text.trim(),
+        },
+      );
+      if (!mounted) return;
+      setState(() => _loading = false);
+      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => AppointmentConfirmationScreen(data: widget.bookingData, date: _dates[_selectedDate!], time: _selectedTime!)));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _validationMessage = error.toString();
+      });
+    }
   }
 }

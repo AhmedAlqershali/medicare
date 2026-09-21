@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/services/firebase_auth_repository.dart';
+import '../../core/firestore/repositories/firestore_clinic_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'data/repositories/organization_clinics_repository_impl.dart';

@@ -51,7 +51,7 @@ class _OrganizationClinicDetailsScreenState extends State<OrganizationClinicDeta
               Row(children: [
                 Expanded(child: _MiniStat(label: 'المرضى', value: '${_clinic.patientsCount}', icon: Icons.people_outline)),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(child: _MiniStat(label: 'مواعيد اليوم', value: '١٨', icon: Icons.calendar_month_outlined)),
+                Expanded(child: _MiniStat(label: 'مواعيد اليوم', value: '', icon: Icons.calendar_month_outlined)),
               ]),
               const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'الأقسام'),

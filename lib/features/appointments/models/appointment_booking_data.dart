@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppointmentBookingData {
   const AppointmentBookingData({
+    required this.doctorId,
     required this.doctorName,
     required this.doctorInitials,
     required this.specialty,
@@ -10,6 +11,7 @@ class AppointmentBookingData {
     required this.avatarColor,
   });
 
+  final String doctorId;
   final String doctorName;
   final String doctorInitials;
   final String specialty;

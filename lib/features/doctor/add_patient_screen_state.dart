@@ -37,10 +37,12 @@ class AddPatientScreenState extends State<AddPatientScreen> {
       _error = null;
     });
     try {
-      FirestorePatientRepository.instance.createPatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: FirebaseAuthRepository.instance.session.currentUser?.id ?? '');
+      await FirestorePatientRepository.instance.createPatient(doctorId: doctorId, name: _nameController.text.trim(), email: email, invitedBy: FirebaseAuthRepository.instance.session.currentUser?.id ?? '');
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }

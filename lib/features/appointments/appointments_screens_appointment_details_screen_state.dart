@@ -109,9 +109,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
-  void _openDoctor(MockAppointment appointment) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => DoctorDetailsScreen.preview(initials: appointment.doctorInitials, name: appointment.doctorName, specialty: appointment.specialty, clinic: appointment.clinicName, location: appointment.location, rating: '٤.٨', reviews: '٩٦', experience: 9, bio: 'رعاية طبية متخصصة بخطة واضحة واهتمام باحتياجات كل مراجع.', services: const ['الفحوصات العامة', 'الاستشارات', 'المتابعة'], color: appointment.avatarColor)));
+  void _openDoctor(AppointmentData appointment) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DoctorsListScreen()));
 
-  void _openClinic(MockAppointment appointment) async {
+  void _openClinic(AppointmentData appointment) async {
     final clinics = await const ClinicsRepositoryImpl().getClinics();
     final clinic = clinics.where((item) => item.name == appointment.clinicName).firstOrNull;
     if (clinic == null || !mounted) return;

@@ -1,5 +1,7 @@
-import '../mock_appointments.dart';
-import '../../models/appointment_status.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../core/auth/services/firebase_auth_repository.dart';
+import '../../../../core/firestore/repositories/firestore_appointment_repository.dart';
 import '../../domain/entities/appointment_entity.dart';
 import '../../domain/repositories/appointments_repository.dart';
 
@@ -8,29 +10,36 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
 
   @override
   Future<List<AppointmentEntity>> getAppointments() async {
-    return mockAppointments.map((appointment) => AppointmentEntity(
-      doctorName: appointment.doctorName,
-      doctorInitials: appointment.doctorInitials,
-      specialty: appointment.specialty,
-      clinicName: appointment.clinicName,
-      location: appointment.location,
-      date: appointment.date,
-      time: appointment.time,
-      type: appointment.type,
-      status: _statusToEntity(appointment.status),
-      avatarColorValue: appointment.avatarColor.value,
-      notes: appointment.notes,
-    )).toList();
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (organizationId == null || organizationId.isEmpty) return const [];
+    final patientId = FirebaseAuthRepository.instance.session.patientId;
+    if (patientId == null || patientId.isEmpty) return const [];
+    final appointments = await FirestoreAppointmentRepository.instance.fetchAppointments(organizationId);
+    return appointments
+      .where((appointment) => appointment['patientId'] == patientId)
+        .map(_fromMap)
+        .toList();
   }
 
-  AppointmentEntityStatus _statusToEntity(AppointmentStatus status) {
-    switch (status) {
-      case AppointmentStatus.upcoming:
-        return AppointmentEntityStatus.upcoming;
-      case AppointmentStatus.completed:
-        return AppointmentEntityStatus.completed;
-      case AppointmentStatus.cancelled:
-        return AppointmentEntityStatus.cancelled;
-    }
-  }
+  AppointmentEntity _fromMap(Map<String, dynamic> appointment) => AppointmentEntity(
+      id: appointment['id'] as String? ?? '',
+        doctorName: appointment['doctorName'] as String? ?? '',
+        doctorInitials: appointment['doctorInitials'] as String? ?? '',
+        specialty: appointment['specialty'] as String? ?? '',
+        clinicName: appointment['clinicName'] as String? ?? '',
+        location: appointment['location'] as String? ?? '',
+        date: appointment['date'] as String? ?? '',
+        time: appointment['time'] as String? ?? '',
+        type: appointment['type'] as String? ?? '',
+        status: _statusFromMap(appointment['status']),
+        avatarColorValue: appointment['avatarColorValue'] as int? ?? Colors.transparent.value,
+        notes: appointment['notes'] as String?,
+      );
+
+  AppointmentEntityStatus _statusFromMap(Object? value) => switch (value) {
+        'completed' => AppointmentEntityStatus.completed,
+        'cancelled' => AppointmentEntityStatus.cancelled,
+        _ => AppointmentEntityStatus.upcoming,
+      };
+
 }

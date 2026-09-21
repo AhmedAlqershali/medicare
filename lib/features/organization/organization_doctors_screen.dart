@@ -7,6 +7,7 @@ import '../../core/firestore/repositories/firestore_organization_repository.dart
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'add_doctor_screen.dart';
+import 'data/repositories/organization_doctors_repository_impl.dart';
 import 'models/organization_doctor.dart';
 
 part 'organization_doctors_screen_organization_doctors_screen_state.dart';

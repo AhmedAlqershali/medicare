@@ -1,7 +1,33 @@
 part of 'doctor_profile_screens.dart';
 
 class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
-  var _profile = const DoctorProfile(name: 'د. أحمد العتيبي', specialty: 'طب عام', clinic: 'مركز Medicare الطبي', email: 'ahmed.alotaibi@example.com', phone: '050 987 6543');
+  var _profile = const DoctorProfile(name: '', specialty: '', clinic: '', email: '', phone: '');
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final doctorId = FirebaseAuthRepository.instance.session.doctorId;
+    if (doctorId == null || doctorId.isEmpty) {
+      if (mounted) setState(() => _error = 'لا توجد جلسة طبيب نشطة.');
+      return;
+    }
+    try {
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
+      if (!mounted) return;
+      if (doctor == null) {
+        setState(() => _error = 'لم يتم العثور على ملف الطبيب.');
+        return;
+      }
+      setState(() => _profile = DoctorProfile(name: doctor.name, specialty: doctor.specialty, clinic: '', email: doctor.email, phone: ''));
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -12,6 +38,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_error != null) Text(_error!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
                 AppCard(
                   child: Row(
                     children: [
@@ -44,7 +71,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 const SectionHeader(title: 'الإعدادات'),
                 const SizedBox(height: AppSpacing.sm),
                 _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف الشخصي', onTap: _editProfile),
-                _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'إعدادات الإشعارات متاحة محلياً')),
+                _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'لا توجد إشعارات جديدة.')),
                 _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context, 'المظهر مضبوط على الوضع الفاتح')),
                 _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context, 'يسعدنا مساعدتك')),
                 _SettingTile(icon: Icons.info_outline, title: 'عن Medicare', onTap: () => _showMessage(context, 'Medicare للرعاية الصحية')),
@@ -57,7 +84,28 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
   Future<void> _editProfile() async {
     final updated = await Navigator.of(context).push<DoctorProfile>(MaterialPageRoute(builder: (_) => DoctorEditProfileScreen(profile: _profile)));
-    if (updated != null && mounted) setState(() => _profile = updated);
+    if (updated == null || !mounted) return;
+    final doctorId = FirebaseAuthRepository.instance.session.doctorId;
+    if (doctorId == null || doctorId.isEmpty) return;
+    try {
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
+      if (doctor == null) throw StateError('لم يتم العثور على ملف الطبيب.');
+      await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
+        id: doctor.id,
+        name: updated.name,
+        email: updated.email,
+        organizationId: doctor.organizationId,
+        specialty: updated.specialty,
+        status: doctor.status,
+        initials: doctor.initials,
+        firebaseUid: doctor.firebaseUid,
+        createdAt: doctor.createdAt,
+        updatedAt: DateTime.now(),
+      ));
+      if (mounted) setState(() => _profile = updated);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
   }
 
   static void _showMessage(BuildContext context, String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

@@ -2,6 +2,7 @@ enum AppointmentEntityStatus { upcoming, completed, cancelled }
 
 class AppointmentEntity {
   const AppointmentEntity({
+    required this.id,
     required this.doctorName,
     required this.doctorInitials,
     required this.specialty,
@@ -15,6 +16,7 @@ class AppointmentEntity {
     this.notes,
   });
 
+  final String id;
   final String doctorName;
   final String doctorInitials;
   final String specialty;

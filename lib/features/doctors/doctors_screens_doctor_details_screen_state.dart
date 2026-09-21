@@ -87,6 +87,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     MaterialPageRoute<void>(
                       builder: (_) => AppointmentBookingScreen(
                         bookingData: AppointmentBookingData(
+                          doctorId: widget.doctor.id,
                           doctorName: widget.doctor.name,
                           doctorInitials: widget.doctor.initials,
                           specialty: widget.doctor.specialty,

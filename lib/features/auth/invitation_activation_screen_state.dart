@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/auth/models/account_role.dart';
+import '../../core/auth/models/auth_result.dart';
 import '../../core/routing/auth_navigation.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
@@ -38,9 +39,19 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
       _error = null;
       _loading = true;
     });
-    final result = widget.role == AccountRole.patient
-        ? await AuthRepositoryImpl.instance.activatePatientAccount(email: email, password: password)
-        : await AuthRepositoryImpl.instance.activateInvitation(role: widget.role, email: email, password: password);
+    AuthResult result;
+    try {
+      result = widget.role == AccountRole.patient
+          ? await AuthRepositoryImpl.instance.activatePatientAccount(email: email, password: password)
+          : await AuthRepositoryImpl.instance.activateInvitation(role: widget.role, email: email, password: password);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+      return;
+    }
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {
@@ -58,7 +69,7 @@ class InvitationActivationScreenState extends State<InvitationActivationScreen> 
 
   String get _subtitle => switch (widget.role) {
         AccountRole.patient => 'أدخل البريد الذي أضافه الطبيب ثم أنشئ كلمة مرور جديدة',
-        AccountRole.doctor => 'استخدم البريد الإلكتروني المطابق للدعوة المحلية التجريبية',
+        AccountRole.doctor => 'استخدم البريد الإلكتروني المطابق للدعوة التي أرسلتها المؤسسة',
         AccountRole.organization => 'استخدم البريد الإلكتروني الخاص بالمؤسسة',
       };
 

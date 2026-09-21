@@ -26,7 +26,7 @@ class AccountTypeSelectionScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               _roleCard(context, role: AccountRole.organization, title: 'مؤسسة طبية', description: 'أدر عياداتك وأطباءك وخدماتك الطبية', icon: Icons.business_outlined, color: AppColors.peach),
               const SizedBox(height: AppSpacing.xl),
-              Text('اختيار الدور يحدد شاشة الدخول فقط. إنشاء الحسابات يتم عبر دعوات محلية تجريبية.', style: Theme.of(context).textTheme.bodyMedium),
+              Text('اختيار الدور يحدد شاشة الدخول. تفعيل الحسابات يتم عبر دعوات المؤسسة أو الطبيب.', style: Theme.of(context).textTheme.bodyMedium),
             ]),
           ),
         ),

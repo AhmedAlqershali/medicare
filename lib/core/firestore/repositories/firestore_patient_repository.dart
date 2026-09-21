@@ -14,13 +14,18 @@ class FirestorePatientRepository implements PatientRepository {
   final FirestoreService _service;
 
   @override
-  List<Patient> patientsForDoctor(String doctorId) => const [];
+  Future<List<Patient>> patientsForDoctor(String doctorId) => fetchPatientsForDoctor(doctorId);
+
+  Future<List<Patient>> fetchPatientsForDoctor(String doctorId) async {
+    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).get();
+    return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
+  }
 
   @override
-  Patient? patientForId(String patientId) => null;
+  Future<Patient?> patientForId(String patientId) => fetchPatientById(patientId);
 
   @override
-  Patient createPatient({required String doctorId, required String name, required String email, required String invitedBy}) {
+  Future<Patient> createPatient({required String doctorId, required String name, required String email, required String invitedBy}) async {
     final trimmedEmail = email.trim();
     final now = DateTime.now();
     final patient = Patient(
@@ -36,7 +41,7 @@ class FirestorePatientRepository implements PatientRepository {
       createdAt: now,
       updatedAt: now,
     );
-    _service.firestore.collection(FirestorePaths.patients).doc(patient.id).set(patient.toMap());
+    await _service.firestore.collection(FirestorePaths.patients).doc(patient.id).set(patient.toMap());
     return patient;
   }
 

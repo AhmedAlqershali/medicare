@@ -18,7 +18,7 @@ class AppointmentConfirmationScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               Text('تم تأكيد الموعد', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.xs),
-              Text('تم تسجيل تفاصيل موعدك بشكل تجريبي.', style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
+              Text('تم حفظ موعدك في حسابك.', style: Theme.of(context).textTheme.bodyLarge, textAlign: TextAlign.center),
               const SizedBox(height: AppSpacing.xl),
               AppCard(child: Column(children: [
                 _ConfirmationRow(icon: Icons.person_outline, title: 'الطبيب', value: data.doctorName),

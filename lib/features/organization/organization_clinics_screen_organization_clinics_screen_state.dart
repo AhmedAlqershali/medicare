@@ -81,6 +81,14 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   Future<void> _openClinicDetails(OrganizationClinic clinic) async {
     final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => OrganizationClinicDetailsScreen(clinic: clinic)));
     if (updated != null && mounted) {
+      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+      if (organizationId == null || organizationId.isEmpty) return;
+      try {
+        await FirestoreClinicRepository.instance.saveClinic(organizationId: organizationId, clinic: _clinicMap(updated));
+      } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+        return;
+      }
       setState(() {
         final index = _clinics.indexWhere((item) => item.id == clinic.id);
         if (index != -1) _clinics[index] = updated;
@@ -91,7 +99,28 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   Future<void> _openAddClinic() async {
     final created = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => const OrganizationClinicFormScreen()));
     if (created != null && mounted) {
+      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+      if (organizationId == null || organizationId.isEmpty) return;
+      try {
+        await FirestoreClinicRepository.instance.createClinic(organizationId: organizationId, clinic: _clinicMap(created));
+      } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+        return;
+      }
       setState(() => _clinics.insert(0, created));
     }
   }
+
+  Map<String, dynamic> _clinicMap(OrganizationClinic clinic) => {
+        'id': clinic.id,
+        'name': clinic.name,
+        'location': clinic.location,
+        'phone': clinic.phone,
+        'description': clinic.description,
+        'status': clinic.status,
+        'doctorsCount': clinic.doctorsCount,
+        'departmentsCount': clinic.departmentsCount,
+        'patientsCount': clinic.patientsCount,
+        'departments': clinic.departments,
+      };
 }

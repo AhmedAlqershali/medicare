@@ -22,7 +22,8 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
     });
   }
 
-  DoctorData _toDoctorData(DoctorEntity entity) => DoctorData(
+    DoctorData _toDoctorData(DoctorEntity entity) => DoctorData(
+      id: entity.id,
         initials: entity.initials,
         name: entity.name,
         specialty: entity.specialty,
