@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/models/account_role.dart';
 import '../../core/routing/auth_navigation.dart';
-import '../../core/auth/models/auth_result.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'auth_widgets.dart';
@@ -33,9 +32,15 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
       _loading = true;
       _error = null;
     });
-    AuthResult result;
     try {
-      result = await AuthRepositoryImpl.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
+      final result = await AuthRepositoryImpl.instance.login(role: widget.role, email: _emailController.text, password: _passwordController.text);
+      if (!mounted) return;
+      setState(() => _loading = false);
+      if (!result.success) {
+        setState(() => _error = result.message);
+        return;
+      }
+      AuthNavigation.openRoleHome(context, widget.role);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -44,13 +49,6 @@ class RoleLoginScreenState extends State<RoleLoginScreen> {
       });
       return;
     }
-    if (!mounted) return;
-    setState(() => _loading = false);
-    if (!result.success) {
-      setState(() => _error = result.message);
-      return;
-    }
-    AuthNavigation.openRoleHome(context, widget.role);
   }
 
   void _createAccount() {
