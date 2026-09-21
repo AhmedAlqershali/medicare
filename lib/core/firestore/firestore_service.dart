@@ -7,37 +7,45 @@ class FirestoreService {
 
   FirebaseFirestore get firestore => _firestore;
 
+  String _organizationId(String organizationId) {
+    final normalizedId = organizationId.trim();
+    if (normalizedId.isEmpty) {
+      throw ArgumentError.value(organizationId, 'organizationId', 'Organization id must be non-empty.');
+    }
+    return normalizedId;
+  }
+
   CollectionReference<Map<String, dynamic>> organizationCollection() => _firestore.collection('organizations');
 
   CollectionReference<Map<String, dynamic>> doctorCollection() => _firestore.collection('doctors');
 
-  CollectionReference<Map<String, dynamic>> doctorCollectionForOrganization(String organizationId) => _firestore.collection('organizations').doc(organizationId).collection('doctors');
+  CollectionReference<Map<String, dynamic>> doctorCollectionForOrganization(String organizationId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('doctors');
 
   CollectionReference<Map<String, dynamic>> patientCollection() => _firestore.collection('patients');
 
-  CollectionReference<Map<String, dynamic>> patientCollectionForDoctor(String organizationId, String doctorId) => _firestore.collection('organizations').doc(organizationId).collection('doctors').doc(doctorId).collection('patients');
+  CollectionReference<Map<String, dynamic>> patientCollectionForDoctor(String organizationId, String doctorId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('doctors').doc(doctorId).collection('patients');
 
-  CollectionReference<Map<String, dynamic>> clinicCollection(String organizationId) => _firestore.collection('organizations').doc(organizationId).collection('clinics');
+  CollectionReference<Map<String, dynamic>> clinicCollection(String organizationId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('clinics');
 
-  CollectionReference<Map<String, dynamic>> appointmentCollection(String organizationId) => _firestore.collection('organizations').doc(organizationId).collection('appointments');
+  CollectionReference<Map<String, dynamic>> appointmentCollection(String organizationId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('appointments');
 
-  CollectionReference<Map<String, dynamic>> invitationCollection(String organizationId) => _firestore.collection('organizations').doc(organizationId).collection('invitations');
+  CollectionReference<Map<String, dynamic>> invitationCollection(String organizationId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('invitations');
 
     Query<Map<String, dynamic>> invitationCollectionGroup() => _firestore.collectionGroup('invitations');
 
-  DocumentReference<Map<String, dynamic>> organizationDocument(String organizationId) => _firestore.collection('organizations').doc(organizationId);
+  DocumentReference<Map<String, dynamic>> organizationDocument(String organizationId) => _firestore.collection('organizations').doc(_organizationId(organizationId));
 
   DocumentReference<Map<String, dynamic>> doctorDocument(String doctorId) => _firestore.collection('doctors').doc(doctorId);
 
-  DocumentReference<Map<String, dynamic>> doctorDocumentForOrganization(String organizationId, String doctorId) => _firestore.collection('organizations').doc(organizationId).collection('doctors').doc(doctorId);
+  DocumentReference<Map<String, dynamic>> doctorDocumentForOrganization(String organizationId, String doctorId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('doctors').doc(doctorId);
 
   DocumentReference<Map<String, dynamic>> patientDocument(String patientId) => _firestore.collection('patients').doc(patientId);
 
-  DocumentReference<Map<String, dynamic>> patientDocumentForDoctor(String organizationId, String doctorId, String patientId) => _firestore.collection('organizations').doc(organizationId).collection('doctors').doc(doctorId).collection('patients').doc(patientId);
+  DocumentReference<Map<String, dynamic>> patientDocumentForDoctor(String organizationId, String doctorId, String patientId) => _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('doctors').doc(doctorId).collection('patients').doc(patientId);
 
   DocumentReference<Map<String, dynamic>> appointmentDocument(String organizationId, String appointmentId) =>
-      _firestore.collection('organizations').doc(organizationId).collection('appointments').doc(appointmentId);
+      _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('appointments').doc(appointmentId);
 
   DocumentReference<Map<String, dynamic>> invitationDocument(String organizationId, String invitationId) =>
-      _firestore.collection('organizations').doc(organizationId).collection('invitations').doc(invitationId);
+      _firestore.collection('organizations').doc(_organizationId(organizationId)).collection('invitations').doc(invitationId);
 }

@@ -69,6 +69,9 @@ class FirestoreClinicRepository {
   }
 
   Future<void> saveOrganization({required Organization organization}) async {
+    if (organization.id.trim().isEmpty) {
+      throw StateError('Organization id is required before saving to Firestore.');
+    }
     await _service.organizationDocument(organization.id).set({
       ...organization.toMap(),
       'status': organization.status.name,
@@ -78,7 +81,7 @@ class FirestoreClinicRepository {
   Future<List<Organization>> fetchOrganizations() async {
     final snapshot = await _service.organizationCollection().get();
     return snapshot.docs
-        .map((document) => Organization.fromMap(document.data()))
+      .map((document) => Organization.fromMap(document.data(), document.id))
         .where((organization) => organization.status != AccountStatus.inactive)
         .toList();
   }

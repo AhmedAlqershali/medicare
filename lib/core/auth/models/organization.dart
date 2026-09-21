@@ -25,7 +25,6 @@ class Organization {
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
-      'id': id,
       'name': name,
       'email': email,
       'phone': phone,
@@ -38,8 +37,8 @@ class Organization {
     return map;
   }
 
-  static Organization fromMap(Map<String, dynamic> map) => Organization(
-        id: map['id'] as String? ?? '',
+    static Organization fromMap(Map<String, dynamic> map, String documentId) => Organization(
+      id: documentId,
         name: map['name'] as String? ?? '',
         email: map['email'] as String? ?? '',
         phone: map['phone'] as String? ?? '',

@@ -27,7 +27,7 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
   Future<Organization?> fetchOrganizationById(String organizationId) async {
     final snapshot = await _service.organizationDocument(organizationId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
-    return Organization.fromMap(snapshot.data()!);
+    return Organization.fromMap(snapshot.data()!, snapshot.id);
   }
 
   Future<Organization?> fetchOrganizationByUid(String firebaseUid) async {
@@ -36,7 +36,8 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من مؤسسة مرتبطة بنفس Firebase UID.');
     }
-    return Organization.fromMap(snapshot.docs.first.data());
+    final document = snapshot.docs.first;
+    return Organization.fromMap(document.data(), document.id);
   }
 
   Future<Organization?> fetchOrganizationByEmail(String email) async {
@@ -46,11 +47,39 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من مؤسسة بنفس البريد الإلكتروني.');
     }
-    return Organization.fromMap(snapshot.docs.first.data());
+    final document = snapshot.docs.first;
+    return Organization.fromMap(document.data(), document.id);
   }
 
   Future<void> saveOrganization(Organization organization) async {
+    if (organization.id.trim().isEmpty) {
+      throw StateError('Organization id is required before saving to Firestore.');
+    }
     await _service.organizationDocument(organization.id).set(organization.toMap(), SetOptions(merge: true));
+  }
+
+  Future<Organization> createOrganization({
+    required String name,
+    required String email,
+    required String phone,
+    required String location,
+    AccountStatus status = AccountStatus.active,
+    String? firebaseUid,
+  }) async {
+    final reference = _service.organizationCollection().doc();
+    final organization = Organization(
+      id: reference.id,
+      name: name,
+      email: email,
+      phone: phone,
+      location: location,
+      status: status,
+      firebaseUid: firebaseUid,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await reference.set(organization.toMap());
+    return organization;
   }
 
   Future<void> linkFirebaseUid({required String organizationId, required String firebaseUid, required String email}) async {
@@ -82,7 +111,7 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
   Future<List<Organization>> fetchOrganizations() async {
     final snapshot = await _service.organizationCollection().get();
     return snapshot.docs
-        .map((document) => Organization.fromMap(document.data()))
+      .map((document) => Organization.fromMap(document.data(), document.id))
         .where((organization) => organization.status != AccountStatus.inactive)
         .toList();
   }
