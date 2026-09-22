@@ -8,7 +8,7 @@ class ClinicDoctorData {
   final String specialty;
   final String rating;
   final String reviews;
-  final int experience;
+  final String experience;
   final String bio;
   final List<String> services;
   final Color color;

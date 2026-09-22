@@ -11,6 +11,9 @@ class Patient {
     required this.accountActivated,
     required this.initials,
     this.firebaseUid,
+    this.phone,
+    this.birthDate,
+    this.gender,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,6 +27,9 @@ class Patient {
   final bool accountActivated;
   final String initials;
   final String? firebaseUid;
+  final String? phone;
+  final String? birthDate;
+  final String? gender;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -38,6 +44,9 @@ class Patient {
       'accountActivated': accountActivated,
       'initials': initials,
     };
+    if (phone != null) map['phone'] = phone;
+    if (birthDate != null) map['birthDate'] = birthDate;
+    if (gender != null) map['gender'] = gender;
     if (firebaseUid != null) map['firebaseUid'] = firebaseUid;
     if (createdAt != null) map['createdAt'] = createdAt!.toUtc().toIso8601String();
     if (updatedAt != null) map['updatedAt'] = updatedAt!.toUtc().toIso8601String();
@@ -56,6 +65,9 @@ class Patient {
         ),
         accountActivated: map['accountActivated'] as bool? ?? false,
         initials: map['initials'] as String? ?? '',
+        phone: map['phone'] as String?,
+        birthDate: map['birthDate'] as String?,
+        gender: map['gender'] as String?,
         firebaseUid: map['firebaseUid'] as String?,
         createdAt: map['createdAt'] is String ? DateTime.tryParse(map['createdAt'] as String) : null,
         updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt'] as String) : null,

@@ -16,10 +16,10 @@ class PatientProfileRepositoryImpl implements PatientProfileRepository {
     if (profile == null) throw StateError('لم يتم العثور على ملف المريض.');
     return PatientProfileEntity(
       name: profile.name,
-      phone: profile.phone,
+      phone: profile.phone ?? '',
       email: profile.email,
-      birthDate: profile.birthDate,
-      gender: profile.gender,
+      birthDate: profile.birthDate ?? '',
+      gender: profile.gender ?? '',
     );
   }
 

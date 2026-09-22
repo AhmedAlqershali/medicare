@@ -11,7 +11,7 @@ class DoctorDetailsScreen extends StatefulWidget {
     required String location,
     required String rating,
     required String reviews,
-    required int experience,
+    required String experience,
     required String bio,
     required List<String> services,
     required Color color,
