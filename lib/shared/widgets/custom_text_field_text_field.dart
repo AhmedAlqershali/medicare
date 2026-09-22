@@ -7,6 +7,7 @@ class _TextField extends StatefulWidget {
     this.prefixIcon,
     this.controller,
     this.obscureText = false,
+    this.readOnly = false,
     this.keyboardType,
     this.onChanged,
     this.onSubmitted,
@@ -21,6 +22,7 @@ class _TextField extends StatefulWidget {
   final IconData? prefixIcon;
   final TextEditingController? controller;
   final bool obscureText;
+  final bool readOnly;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;

@@ -4,8 +4,8 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   int _selectedDate = 0;
   String? _selectedTime;
 
-  static const List<String> _dates = [];
-  static const List<String> _times = [];
+  List<String> get _dates => widget.doctor.availability.keys.toList();
+  List<String> get _times => _dates.isEmpty ? const [] : widget.doctor.availability[_dates[_selectedDate]] ?? const [];
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -94,6 +94,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                           clinicName: widget.doctor.clinic,
                           location: widget.doctor.location,
                           avatarColor: widget.doctor.color,
+                          availability: widget.doctor.availability,
                         ),
                       ),
                     ),

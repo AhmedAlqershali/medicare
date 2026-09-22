@@ -46,7 +46,7 @@ class _EditPatientProfileScreenState extends State<EditPatientProfileScreen> {
               const SizedBox(height: AppSpacing.md),
               CustomTextField(label: 'رقم الهاتف', prefixIcon: Icons.phone_outlined, controller: _phoneController, errorText: _errors['phone'], keyboardType: TextInputType.phone, textInputAction: TextInputAction.next),
               const SizedBox(height: AppSpacing.md),
-              CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, errorText: _errors['email'], keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next),
+              CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, errorText: _errors['email'], keyboardType: TextInputType.emailAddress, textInputAction: TextInputAction.next, readOnly: true),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(label: 'تاريخ الميلاد', hintText: 'مثال: ١٥ مايو ١٩٩٦', prefixIcon: Icons.cake_outlined, controller: _birthDateController, errorText: _errors['birthDate'], textInputAction: TextInputAction.next),
               const SizedBox(height: AppSpacing.lg),

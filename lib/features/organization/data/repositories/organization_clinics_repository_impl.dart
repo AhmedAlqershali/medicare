@@ -11,7 +11,7 @@ class OrganizationClinicsRepositoryImpl implements OrganizationClinicsRepository
   @override
   Future<List<OrganizationClinic>> getOrganizationClinics() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || organizationId.isEmpty) return const [];
+    if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
     return clinics.map((clinic) => OrganizationClinic(
       id: clinic['id'] as String? ?? '',

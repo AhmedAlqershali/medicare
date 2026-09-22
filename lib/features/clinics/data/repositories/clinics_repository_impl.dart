@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/auth/services/firebase_auth_repository.dart';
 import '../../../../core/firestore/repositories/firestore_clinic_repository.dart';
+import '../../../../core/firestore/repositories/firestore_doctor_repository.dart';
 import '../../domain/entities/clinic_entity.dart';
+import '../../../doctors/domain/entities/doctor_entity.dart';
 import '../../domain/repositories/clinics_repository.dart';
 
 class ClinicsRepositoryImpl implements ClinicsRepository {
@@ -11,8 +13,9 @@ class ClinicsRepositoryImpl implements ClinicsRepository {
   @override
   Future<List<ClinicEntity>> getClinics() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || organizationId.isEmpty) return const [];
+    if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
+    final doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
     return clinics.map((clinic) => ClinicEntity(
       name: clinic['name'] as String? ?? '',
       category: clinic['category'] as String? ?? '',
@@ -23,7 +26,21 @@ class ClinicsRepositoryImpl implements ClinicsRepository {
       status: clinic['status'] as String? ?? '',
       icon: Icons.local_hospital_outlined,
       colorValue: Colors.transparent.value,
-      doctors: const [],
+      doctors: doctors.where((doctor) => doctor.clinic == (clinic['name'] as String? ?? '') || doctor.clinic == (clinic['id'] as String? ?? '')).map((doctor) => DoctorEntity(
+        id: doctor.id,
+        initials: doctor.initials,
+        name: doctor.name,
+        specialty: doctor.specialty,
+        clinic: doctor.clinic,
+        location: doctor.location,
+        rating: doctor.rating,
+        reviews: doctor.reviews,
+        experience: doctor.experience,
+        bio: doctor.bio,
+        services: doctor.services,
+        colorValue: Colors.transparent.value,
+        availability: doctor.availability,
+      )).toList(),
     )).toList();
   }
 

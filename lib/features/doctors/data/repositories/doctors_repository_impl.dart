@@ -10,21 +10,22 @@ class DoctorsRepositoryImpl implements DoctorsRepository {
   @override
   Future<List<DoctorEntity>> getDoctors() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || organizationId.isEmpty) return const [];
+    if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
     return doctors.map((doctor) => DoctorEntity(
       id: doctor.id,
       initials: doctor.initials,
       name: doctor.name,
       specialty: doctor.specialty,
-      clinic: '',
-      location: '',
-      rating: '',
-      reviews: '',
-      experience: 0,
-      bio: '',
-      services: const [],
+      clinic: doctor.clinic,
+      location: doctor.location,
+      rating: doctor.rating,
+      reviews: doctor.reviews,
+      experience: doctor.experience,
+      bio: doctor.bio,
+      services: doctor.services,
       colorValue: AppColors.sky.value,
+      availability: doctor.availability,
     )).toList();
   }
 }

@@ -31,7 +31,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
     if (organizationId.trim().isEmpty || invitationId.trim().isEmpty) return null;
     final snapshot = await _service.invitationDocument(organizationId, invitationId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
-    final invitation = Invitation.fromMap(snapshot.data()!);
+    final invitation = Invitation.fromMap({...snapshot.data()!, 'id': snapshot.id});
     if (invitation.organizationId.isNotEmpty && invitation.organizationId != organizationId) {
       throw StateError('This invitation belongs to a different organization and cannot be read here.');
     }
@@ -49,7 +49,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('Multiple pending invitations were found for the same email in this organization.');
     }
-    final invitation = Invitation.fromMap(snapshot.docs.first.data());
+    final invitation = Invitation.fromMap({...snapshot.docs.first.data(), 'id': snapshot.docs.first.id});
     if (invitation.organizationId.isNotEmpty && invitation.organizationId != organizationId) {
       throw StateError('This invitation belongs to a different organization and cannot be read here.');
     }
@@ -70,7 +70,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
       throw StateError('تم العثور على أكثر من دعوة مؤسسة صالحة لهذا البريد الإلكتروني.');
     }
     if (snapshot.docs.isEmpty) return null;
-    final invitation = Invitation.fromMap(snapshot.docs.single.data());
+    final invitation = Invitation.fromMap({...snapshot.docs.single.data(), 'id': snapshot.docs.single.id});
     return invitation.isCurrentlyValid ? invitation : null;
   }
 
@@ -88,7 +88,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
       throw StateError('تم العثور على أكثر من دعوة صالحة لهذا البريد الإلكتروني.');
     }
     if (snapshot.docs.isEmpty) return null;
-    final invitation = Invitation.fromMap(snapshot.docs.single.data());
+    final invitation = Invitation.fromMap({...snapshot.docs.single.data(), 'id': snapshot.docs.single.id});
     return invitation.isCurrentlyValid ? invitation : null;
   }
 
@@ -99,7 +99,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
     }
     final snapshot = await query.get();
     return snapshot.docs
-        .map((document) => Invitation.fromMap(document.data()))
+        .map((document) => Invitation.fromMap({...document.data(), 'id': document.id}))
         .where((invitation) => invitation.organizationId.isEmpty || invitation.organizationId == organizationId)
         .toList();
   }
@@ -158,7 +158,7 @@ class FirestoreInvitationRepository implements InvitationRepository {
     await _service.firestore.runTransaction((transaction) async {
       final invitationSnapshot = await transaction.get(invitationReference);
       final userSnapshot = await transaction.get(userReference);
-      final currentInvitation = invitationSnapshot.exists && invitationSnapshot.data() != null ? Invitation.fromMap(invitationSnapshot.data()!) : null;
+      final currentInvitation = invitationSnapshot.exists && invitationSnapshot.data() != null ? Invitation.fromMap({...invitationSnapshot.data()!, 'id': invitationSnapshot.id}) : null;
       if (currentInvitation == null || !currentInvitation.isCurrentlyValid) {
         throw StateError('هذه الدعوة غير صالحة أو تم استخدامها من قبل.');
       }

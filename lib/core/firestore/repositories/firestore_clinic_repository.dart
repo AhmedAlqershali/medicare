@@ -25,7 +25,7 @@ class FirestoreClinicRepository {
   Future<List<Map<String, dynamic>>> fetchClinicsForOrganization(String organizationId) async {
     final snapshot = await _service.clinicCollection(organizationId).get();
     return snapshot.docs
-        .map((document) => document.data())
+        .map((document) => {...document.data(), 'id': document.id})
         .where((clinic) => clinic['organizationId'] == null || clinic['organizationId'] == organizationId)
         .toList();
   }

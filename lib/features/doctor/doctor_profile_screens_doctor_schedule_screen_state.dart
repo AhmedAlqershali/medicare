@@ -2,8 +2,37 @@ part of 'doctor_profile_screens.dart';
 
 class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
   int _selectedDay = 0;
-  static const List<(String, String)> _days = [];
-  static const List<(String, bool)> _slots = [];
+  Map<String, List<String>> _availability = const {};
+  Set<String> _bookedSlots = const {};
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSchedule();
+  }
+
+  Future<void> _loadSchedule() async {
+    final doctorId = FirebaseAuthRepository.instance.session.doctorId;
+    if (doctorId == null || doctorId.isEmpty) {
+      if (mounted) setState(() => _error = 'لا توجد جلسة طبيب نشطة.');
+      return;
+    }
+    try {
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
+      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+      final appointments = organizationId == null
+          ? const <Map<String, dynamic>>[]
+          : await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: doctorId);
+      if (!mounted) return;
+      setState(() {
+        _availability = doctor?.availability ?? const {};
+        _bookedSlots = appointments.map((appointment) => '${appointment['date'] ?? ''}|${appointment['time'] ?? ''}').toSet();
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -17,11 +46,12 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
               children: [
                 Text('جدول مواعيدك لهذا الأسبوع', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: AppSpacing.lg),
-                if (_days.isEmpty) const EmptyState(title: 'لا يوجد جدول متاح', message: 'لم يتم نشر جدول لهذا الطبيب بعد.') else SizedBox(
+                if (_error != null) ErrorState(message: _error!, onRetry: _loadSchedule)
+                else if (_availability.isEmpty) const EmptyState(title: 'لا يوجد جدول متاح', message: 'لم يتم نشر جدول لهذا الطبيب بعد.') else SizedBox(
                   height: 76,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _days.length,
+                    itemCount: _availability.length,
                     separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final selected = _selectedDay == index;
@@ -38,9 +68,9 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(_days[index].$1, style: TextStyle(color: selected ? Colors.white : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+                              Text(_availability.keys.elementAt(index), style: TextStyle(color: selected ? Colors.white : AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 4),
-                              Text(_days[index].$2, style: TextStyle(color: selected ? Colors.white : AppColors.ink, fontSize: 18, fontWeight: FontWeight.w800)),
+                              Text('${_availability.values.elementAt(index).length}', style: TextStyle(color: selected ? Colors.white : AppColors.ink, fontSize: 18, fontWeight: FontWeight.w800)),
                             ],
                           ),
                         ),
@@ -66,10 +96,10 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
-                  children: [if (_slots.isNotEmpty) for (final slot in _slots) _ScheduleSlot(time: slot.$1, booked: slot.$2)],
+                  children: [for (final slot in _selectedSlots) _ScheduleSlot(time: slot, booked: _bookedSlots.contains('${_availability.keys.elementAt(_selectedDay)}|$slot'))],
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                if (_slots.isNotEmpty) const Row(
+                if (_selectedSlots.isNotEmpty) const Row(
                   children: [
                     _Legend(color: AppColors.primary, label: 'محجوز'),
                     SizedBox(width: AppSpacing.lg),
@@ -81,4 +111,6 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
           ),
         ),
       );
+
+      List<String> get _selectedSlots => _availability.isEmpty ? const [] : _availability.values.elementAt(_selectedDay);
 }

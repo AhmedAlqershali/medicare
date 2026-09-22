@@ -14,6 +14,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
   int _patientsCount = 0;
   int _appointmentsCount = 0;
   String? _error;
+  String _organizationName = '';
 
   @override
   void initState() {
@@ -38,12 +39,15 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
       final doctors = results[1] as List<OrganizationDoctor>;
       final patients = results[2] as List;
       final appointments = results[3] as List;
+      final organization = await FirestoreOrganizationRepository.instance.currentOrganization();
+      if (organization == null) throw StateError('لم يتم العثور على document المؤسسة في Firestore.');
       if (!mounted) return;
       setState(() {
         _clinics = clinics;
         _doctors = doctors;
         _patientsCount = patients.length;
         _appointmentsCount = appointments.length;
+        _organizationName = organization.name;
       });
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -92,8 +96,6 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
           ),
         ],
       );
-
-  String get _organizationName => FirebaseAuthRepository.instance.session.currentUser?.name ?? 'المؤسسة الطبية';
 
   String get _initials {
     final parts = _organizationName.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();

@@ -12,10 +12,10 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
   @override
   Future<List<AppointmentEntity>> getAppointments() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || organizationId.isEmpty) return const [];
+    if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المريض.');
     final patientId = FirebaseAuthRepository.instance.session.patientId;
     final patientUid = FirebaseAuth.instance.currentUser?.uid;
-    if (patientId == null || patientId.isEmpty || patientUid == null || patientUid.isEmpty) return const [];
+    if (patientId == null || patientId.isEmpty || patientUid == null || patientUid.isEmpty) throw StateError('لا توجد هوية مريض مرتبطة بجلسة Firebase.');
     final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForPatient(
       organizationId: organizationId,
       patientId: patientId,
@@ -28,6 +28,7 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
 
   AppointmentEntity _fromMap(Map<String, dynamic> appointment) => AppointmentEntity(
       id: appointment['id'] as String? ?? '',
+        doctorId: appointment['doctorId'] as String? ?? '',
         doctorName: appointment['doctorName'] as String? ?? '',
         doctorInitials: appointment['doctorInitials'] as String? ?? '',
         specialty: appointment['specialty'] as String? ?? '',

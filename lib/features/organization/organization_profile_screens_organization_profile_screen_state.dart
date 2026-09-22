@@ -23,7 +23,8 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
         setState(() => _error = 'لم يتم العثور على ملف المؤسسة.');
         return;
       }
-      setState(() => _profile = OrganizationProfile(name: organization.name, email: organization.email, phone: organization.phone, location: organization.location, clinicsCount: 0));
+      final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
+      setState(() => _profile = OrganizationProfile(name: organization.name, email: organization.email, phone: organization.phone, location: organization.location, clinicsCount: clinics.length));
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     }

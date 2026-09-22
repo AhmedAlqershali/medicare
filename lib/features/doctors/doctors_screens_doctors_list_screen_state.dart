@@ -5,8 +5,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   String _selectedSpecialty = 'الكل';
   String _searchQuery = '';
   late List<DoctorData> _doctors = const [];
-
-  static const _specialties = ['الكل', 'طب عام', 'أطفال', 'أسنان', 'قلب', 'جلدية', 'نسائية', 'عظام'];
+  String? _error;
 
   @override
   void initState() {
@@ -15,12 +14,19 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
   }
 
   Future<void> _loadDoctors() async {
-    final doctors = await const DoctorsRepositoryImpl().getDoctors();
-    if (!mounted) return;
-    setState(() {
-      _doctors = doctors.map(_toDoctorData).toList();
-    });
+    try {
+      final doctors = await const DoctorsRepositoryImpl().getDoctors();
+      if (!mounted) return;
+      setState(() {
+        _doctors = doctors.map(_toDoctorData).toList();
+        _error = null;
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
   }
+
+  List<String> get _specialties => ['الكل', ..._doctors.map((doctor) => doctor.specialty).where((specialty) => specialty.trim().isNotEmpty).toSet()];
 
     DoctorData _toDoctorData(DoctorEntity entity) => DoctorData(
       id: entity.id,
@@ -35,6 +41,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         bio: entity.bio,
         services: List<String>.from(entity.services),
         color: Color(entity.colorValue),
+        availability: entity.availability,
       );
 
   @override
@@ -106,7 +113,9 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
                   const SizedBox(height: AppSpacing.sm),
                 ])),
               ),
-              if (_filteredDoctors.isEmpty)
+              if (_error != null)
+                SliverFillRemaining(hasScrollBody: false, child: ErrorState(message: _error!, onRetry: _loadDoctors))
+              else if (_filteredDoctors.isEmpty)
                 const SliverFillRemaining(hasScrollBody: false, child: _DoctorsEmptyState())
               else
                 SliverPadding(

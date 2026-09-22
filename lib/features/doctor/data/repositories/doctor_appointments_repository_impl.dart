@@ -13,7 +13,7 @@ class DoctorAppointmentsRepositoryImpl implements DoctorAppointmentsRepository {
     final session = FirebaseAuthRepository.instance.session;
     final organizationId = session.organizationId;
     final doctorId = session.doctorId;
-    if (organizationId == null || doctorId == null || organizationId.isEmpty || doctorId.isEmpty) return const [];
+    if (organizationId == null || doctorId == null || organizationId.isEmpty || doctorId.isEmpty) throw StateError('لا توجد هوية طبيب ومؤسسة مرتبطة بجلسة المستخدم.');
     final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: doctorId);
     return appointments.map(_fromMap).toList();
   }

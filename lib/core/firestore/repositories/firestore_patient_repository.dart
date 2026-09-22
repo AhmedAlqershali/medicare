@@ -25,13 +25,13 @@ class FirestorePatientRepository implements PatientRepository {
     final doctor = await _doctorRepository.doctorForId(doctorId);
     if (doctor == null || doctor.organizationId.isEmpty) return [];
     final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).where('organizationId', isEqualTo: doctor.organizationId).get();
-    return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
+    return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
   }
 
   Future<List<Patient>> fetchPatientsForOrganization(String organizationId) async {
-    if (organizationId.trim().isEmpty) return const [];
+    if (organizationId.trim().isEmpty) throw StateError('Organization id is required to read patients.');
     final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
-    return snapshot.docs.map((document) => Patient.fromMap(document.data())).toList();
+    return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
   }
 
   @override
@@ -67,7 +67,7 @@ class FirestorePatientRepository implements PatientRepository {
   Future<Patient?> fetchPatientById(String patientId) async {
     final snapshot = await _service.patientDocument(patientId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
-    return Patient.fromMap(snapshot.data()!);
+    return Patient.fromMap({...snapshot.data()!, 'id': snapshot.id});
   }
 
   Future<Patient?> fetchPatientByEmail(String email) async {
@@ -77,11 +77,22 @@ class FirestorePatientRepository implements PatientRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من سجل مريض بنفس البريد الإلكتروني. يتطلب ذلك تصحيحاً إدارياً.');
     }
-    return Patient.fromMap(snapshot.docs.first.data());
+    return Patient.fromMap({...snapshot.docs.first.data(), 'id': snapshot.docs.first.id});
   }
 
   Future<void> savePatient(Patient patient) async {
     await _service.patientDocument(patient.id).set(patient.toMap(), SetOptions(merge: true));
+  }
+
+  Future<void> updatePatientProfile({required String patientId, required String name, required String phone, required String birthDate, required String gender}) async {
+    if (patientId.trim().isEmpty) throw StateError('Patient id is required before saving the profile.');
+    await _service.patientDocument(patientId).set({
+      'name': name.trim(),
+      'phone': phone.trim(),
+      'birthDate': birthDate.trim(),
+      'gender': gender.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> activatePatient({required String patientId, required String firebaseUid, required String email}) async {

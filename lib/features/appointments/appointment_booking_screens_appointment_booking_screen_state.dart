@@ -7,9 +7,39 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   String _appointmentType = 'زيارة في العيادة';
   String? _validationMessage;
   bool _loading = false;
+  Map<String, List<String>> _availableAvailability = const {};
 
-  static const List<AppointmentDate> _dates = [];
-  static const List<String> _times = [];
+  @override
+  void initState() {
+    super.initState();
+    _availableAvailability = widget.bookingData.availability;
+    _loadBookedSlots();
+  }
+
+  List<AppointmentDate> get _dates => _availableAvailability.keys.map(AppointmentDate.fromFirebase).toList();
+  List<String> get _times => _dates.isEmpty ? const [] : _availableAvailability[_dates[_selectedDate ?? 0].label] ?? const [];
+
+  Future<void> _loadBookedSlots() async {
+    final session = FirebaseAuthRepository.instance.session;
+    final organizationId = session.organizationId;
+    if (organizationId == null || organizationId.isEmpty || widget.bookingData.doctorId.isEmpty) return;
+    try {
+      final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: widget.bookingData.doctorId);
+      final booked = appointments.map((appointment) => '${appointment['date'] ?? ''}|${appointment['time'] ?? ''}').toSet();
+      final available = <String, List<String>>{};
+      for (final entry in _availableAvailability.entries) {
+        final slots = entry.value.where((time) => !booked.contains('${entry.key}|$time')).toList();
+        if (slots.isNotEmpty) available[entry.key] = slots;
+      }
+      if (mounted) setState(() {
+        _availableAvailability = available;
+        if (_selectedDate != null && _selectedDate! >= _dates.length) _selectedDate = null;
+        _selectedTime = null;
+      });
+    } catch (error) {
+      if (mounted) setState(() => _validationMessage = error.toString());
+    }
+  }
 
   @override
   void dispose() {
@@ -117,7 +147,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
           'specialty': widget.bookingData.specialty,
           'clinicName': widget.bookingData.clinicName,
           'location': widget.bookingData.location,
-          'date': '${_dates[_selectedDate!].day} ${_dates[_selectedDate!].number} ${_dates[_selectedDate!].month}',
+          'date': _dates[_selectedDate!].label,
           'time': _selectedTime,
           'type': _appointmentType,
           'status': 'upcoming',

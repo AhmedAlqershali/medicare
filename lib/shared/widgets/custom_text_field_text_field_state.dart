@@ -15,6 +15,7 @@ class _TextFieldState extends State<_TextField> {
     final field = TextFormField(
       controller: widget.controller,
       obscureText: _obscure,
+      readOnly: widget.readOnly,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,

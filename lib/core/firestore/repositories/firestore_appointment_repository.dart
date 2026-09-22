@@ -17,13 +17,13 @@ class FirestoreAppointmentRepository {
     if (appointment['organizationId'] != null && appointment['organizationId'] != organizationId) {
       throw StateError('This appointment belongs to a different organization and cannot be read here.');
     }
-    return appointment;
+    return {...appointment, 'id': snapshot.id};
   }
 
   Future<List<Map<String, dynamic>>> fetchAppointments(String organizationId) async {
     final snapshot = await _service.appointmentCollection(organizationId).where('organizationId', isEqualTo: organizationId).get();
     return snapshot.docs
-        .map((document) => document.data())
+        .map((document) => {...document.data(), 'id': document.id})
         .where((appointment) => appointment['organizationId'] == null || appointment['organizationId'] == organizationId)
         .toList();
   }
@@ -36,7 +36,7 @@ class FirestoreAppointmentRepository {
         .where('patientId', isEqualTo: patientId)
         .where('patientUid', isEqualTo: patientUid)
         .get();
-    return snapshot.docs.map((document) => document.data()).toList();
+    return snapshot.docs.map((document) => {...document.data(), 'id': document.id}).toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchAppointmentsForDoctor({required String organizationId, required String doctorId}) async {
@@ -44,29 +44,25 @@ class FirestoreAppointmentRepository {
         .where('organizationId', isEqualTo: organizationId)
         .where('doctorId', isEqualTo: doctorId)
         .get();
-    return snapshot.docs.map((document) => document.data()).toList();
+    return snapshot.docs.map((document) => {...document.data(), 'id': document.id}).toList();
   }
 
   Future<Map<String, dynamic>> createAppointment({required String organizationId, required Map<String, dynamic> appointment}) async {
-    final appointmentId = (appointment['id'] as String? ?? '').trim();
-    if (appointmentId.isEmpty) {
-      throw StateError('Appointment id is required before creating a Firestore record.');
-    }
-
     final requestedOrganizationId = (appointment['organizationId'] as String?) ?? organizationId;
     if (requestedOrganizationId != organizationId) {
       throw StateError('Appointment organization cannot be changed from the client.');
     }
 
+    final reference = _service.appointmentCollection(organizationId).doc();
     final safeAppointment = <String, dynamic>{
       ...appointment,
-      'id': appointmentId,
+      'id': reference.id,
       'organizationId': organizationId,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    await _service.appointmentDocument(organizationId, appointmentId).set(safeAppointment, SetOptions(merge: true));
+    await reference.set(safeAppointment);
     return safeAppointment;
   }
 

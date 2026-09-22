@@ -16,10 +16,23 @@ class PatientProfileRepositoryImpl implements PatientProfileRepository {
     if (profile == null) throw StateError('لم يتم العثور على ملف المريض.');
     return PatientProfileEntity(
       name: profile.name,
-      phone: '',
+      phone: profile.phone,
       email: profile.email,
-      birthDate: '',
-      gender: '',
+      birthDate: profile.birthDate,
+      gender: profile.gender,
+    );
+  }
+
+  @override
+  Future<void> updatePatientProfile(PatientProfileEntity profile) async {
+    final patientId = FirebaseAuthRepository.instance.session.patientId;
+    if (patientId == null || patientId.isEmpty) throw StateError('لا توجد جلسة مريض نشطة.');
+    await FirestorePatientRepository.instance.updatePatientProfile(
+      patientId: patientId,
+      name: profile.name,
+      phone: profile.phone,
+      birthDate: profile.birthDate,
+      gender: profile.gender,
     );
   }
 }

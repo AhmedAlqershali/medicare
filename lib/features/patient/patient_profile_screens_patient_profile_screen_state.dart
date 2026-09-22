@@ -34,7 +34,14 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                 patient: _patient,
                 onEdit: () async {
                   final updated = await Navigator.of(context).push<PatientProfile>(MaterialPageRoute(builder: (_) => EditPatientProfileScreen(patient: _patient)));
-                  if (updated != null && mounted) setState(() => _patient = updated);
+                  if (updated == null || !mounted) return;
+                  try {
+                    final repository = const PatientProfileRepositoryImpl();
+                    await repository.updatePatientProfile(PatientProfileEntity(name: updated.name, phone: updated.phone, email: updated.email, birthDate: updated.birthDate, gender: updated.gender));
+                    await _loadProfile();
+                  } catch (error) {
+                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+                  }
                 },
               ),
               const SizedBox(height: AppSpacing.xl),

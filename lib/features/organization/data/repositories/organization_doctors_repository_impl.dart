@@ -11,19 +11,19 @@ class OrganizationDoctorsRepositoryImpl implements OrganizationDoctorsRepository
   @override
   Future<List<OrganizationDoctor>> getOrganizationDoctors() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || organizationId.isEmpty) return const [];
+    if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
     return doctors.map((doctor) => OrganizationDoctor(
       id: doctor.id,
       name: doctor.name,
       initials: doctor.initials,
       specialty: doctor.specialty,
-      clinic: '',
+      clinic: doctor.clinic,
       phone: '',
       email: doctor.email,
       status: doctor.status.name,
       avatarColor: Colors.transparent,
-      scheduleSummary: '',
+      scheduleSummary: doctor.availability.isEmpty ? '' : '${doctor.availability.length} أيام متاحة',
     )).toList();
   }
 }

@@ -13,6 +13,7 @@ class CustomTextField extends StatelessWidget {
     this.prefixIcon,
     this.controller,
     this.obscureText = false,
+    this.readOnly = false,
     this.keyboardType,
     this.onChanged,
     this.onSubmitted,
@@ -27,6 +28,7 @@ class CustomTextField extends StatelessWidget {
   final IconData? prefixIcon;
   final TextEditingController? controller;
   final bool obscureText;
+  final bool readOnly;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -42,6 +44,7 @@ class CustomTextField extends StatelessWidget {
         prefixIcon: prefixIcon,
         controller: controller,
         obscureText: obscureText,
+        readOnly: readOnly,
         keyboardType: keyboardType,
         onChanged: onChanged,
         onSubmitted: onSubmitted,

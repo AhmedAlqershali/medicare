@@ -2,8 +2,8 @@ part of 'organization_doctors_screen.dart';
 
 class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   final _searchController = TextEditingController();
-  final List<String> _specialties = ['الكل', 'طب عام', 'أطفال', 'جلدية'];
-  final List<String> _clinics = ['الكل', 'العيادة المركزية', 'عيادة النمو', 'مركز الجلدية'];
+  List<String> _specialties = const ['الكل'];
+  List<String> _clinics = const ['الكل'];
   String _selectedSpecialty = 'الكل';
   String _selectedClinic = 'الكل';
   String _query = '';
@@ -17,8 +17,15 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
 
   Future<void> _loadDoctors() async {
     final doctors = await const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors();
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    final clinics = organizationId == null || organizationId.isEmpty ? const <Map<String, dynamic>>[] : await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
     if (!mounted) return;
-    setState(() => _doctors = doctors);
+    setState(() {
+      _doctors = doctors;
+      _specialties = ['الكل', ...doctors.map((doctor) => doctor.specialty).where((specialty) => specialty.trim().isNotEmpty).toSet()];
+      _clinics = ['الكل', ...clinics.map((clinic) => clinic['name'] as String? ?? '').where((clinic) => clinic.trim().isNotEmpty).toSet()];
+      if (!_clinics.contains(_selectedClinic)) _selectedClinic = 'الكل';
+    });
   }
 
   List<OrganizationDoctor> get _filteredDoctors => _doctors.where((doctor) {

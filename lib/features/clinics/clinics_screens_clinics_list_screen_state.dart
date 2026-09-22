@@ -5,8 +5,7 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
   String _selectedCategory = 'الكل';
   String _searchQuery = '';
   late List<ClinicData> _clinics = const [];
-
-  static const _categories = ['الكل', 'عيادات عامة', 'أسنان', 'أطفال', 'قلب', 'جلدية', 'نسائية', 'عظام'];
+  String? _error;
 
   @override
   void initState() {
@@ -15,12 +14,19 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
   }
 
   Future<void> _loadClinics() async {
-    final clinics = await const ClinicsRepositoryImpl().getClinics();
-    if (!mounted) return;
-    setState(() {
-      _clinics = clinics.map(_toClinicData).toList();
-    });
+    try {
+      final clinics = await const ClinicsRepositoryImpl().getClinics();
+      if (!mounted) return;
+      setState(() {
+        _clinics = clinics.map(_toClinicData).toList();
+        _error = null;
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
   }
+
+  List<String> get _categories => ['الكل', ..._clinics.map((clinic) => clinic.category).where((category) => category.trim().isNotEmpty).toSet()];
 
   ClinicData _toClinicData(ClinicEntity entity) => ClinicData(
         name: entity.name,
@@ -117,7 +123,9 @@ class _ClinicsListScreenState extends State<ClinicsListScreen> {
                   ]),
                 ),
               ),
-              if (_filteredClinics.isEmpty)
+              if (_error != null)
+                SliverFillRemaining(hasScrollBody: false, child: ErrorState(message: _error!, onRetry: _loadClinics))
+              else if (_filteredClinics.isEmpty)
                 const SliverFillRemaining(hasScrollBody: false, child: _ClinicsEmptyState())
               else
                 SliverPadding(

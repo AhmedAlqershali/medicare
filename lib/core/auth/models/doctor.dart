@@ -9,6 +9,14 @@ class Doctor {
     required this.specialty,
     required this.status,
     required this.initials,
+    this.availability = const {},
+    this.clinic = '',
+    this.location = '',
+    this.rating = 0,
+    this.reviews = 0,
+    this.experience = '',
+    this.bio = '',
+    this.services = const [],
     this.firebaseUid,
     this.createdAt,
     this.updatedAt,
@@ -21,6 +29,14 @@ class Doctor {
   final String specialty;
   final AccountStatus status;
   final String initials;
+  final Map<String, List<String>> availability;
+  final String clinic;
+  final String location;
+  final double rating;
+  final int reviews;
+  final String experience;
+  final String bio;
+  final List<String> services;
   final String? firebaseUid;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -34,6 +50,14 @@ class Doctor {
       'specialty': specialty,
       'status': status.name,
       'initials': initials,
+      'availability': availability,
+      'clinic': clinic,
+      'location': location,
+      'rating': rating,
+      'reviews': reviews,
+      'experience': experience,
+      'bio': bio,
+      'services': services,
     };
     if (firebaseUid != null) map['firebaseUid'] = firebaseUid;
     if (createdAt != null) map['createdAt'] = createdAt!.toUtc().toIso8601String();
@@ -41,8 +65,8 @@ class Doctor {
     return map;
   }
 
-  static Doctor fromMap(Map<String, dynamic> map) => Doctor(
-        id: map['id'] as String? ?? '',
+    static Doctor fromMap(Map<String, dynamic> map, [String? documentId]) => Doctor(
+      id: documentId ?? map['id'] as String? ?? '',
         name: map['name'] as String? ?? '',
         email: map['email'] as String? ?? '',
         organizationId: map['organizationId'] as String? ?? '',
@@ -52,8 +76,24 @@ class Doctor {
           orElse: () => AccountStatus.active,
         ),
         initials: map['initials'] as String? ?? '',
+        availability: _availability(map['availability']),
+        clinic: map['clinic'] as String? ?? '',
+        location: map['location'] as String? ?? '',
+        rating: (map['rating'] as num?)?.toDouble() ?? 0,
+        reviews: (map['reviews'] as num?)?.toInt() ?? 0,
+        experience: map['experience'] as String? ?? '',
+        bio: map['bio'] as String? ?? '',
+        services: map['services'] is List ? (map['services'] as List).map((item) => item.toString()).toList() : const [],
         firebaseUid: map['firebaseUid'] as String?,
         createdAt: map['createdAt'] is String ? DateTime.tryParse(map['createdAt'] as String) : null,
         updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt'] as String) : null,
       );
+
+  static Map<String, List<String>> _availability(Object? value) {
+    if (value is! Map) return const {};
+    return value.map((key, slots) => MapEntry(
+      key.toString(),
+      slots is List ? slots.map((slot) => slot.toString()).toList() : <String>[],
+    ));
+  }
 }

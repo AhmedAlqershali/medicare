@@ -21,7 +21,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
 
   Future<List<Doctor>> fetchDoctorsForOrganization(String organizationId) async {
     final snapshot = await _service.firestore.collection(FirestorePaths.doctors).where('organizationId', isEqualTo: organizationId).get();
-    return snapshot.docs.map((document) => Doctor.fromMap(document.data())).toList();
+    return snapshot.docs.map((document) => Doctor.fromMap(document.data(), document.id)).toList();
   }
 
   @override
@@ -40,6 +40,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
       status: AccountStatus.pending,
       initials: _initials(name),
       firebaseUid: null,
+      availability: const {},
       createdAt: now,
       updatedAt: now,
     );
@@ -64,7 +65,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
   Future<Doctor?> fetchDoctorById(String doctorId) async {
     final snapshot = await _service.doctorDocument(doctorId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
-    return Doctor.fromMap(snapshot.data()!);
+    return Doctor.fromMap(snapshot.data()!, snapshot.id);
   }
 
   Future<Doctor?> fetchDoctorByUid(String firebaseUid) async {
@@ -73,7 +74,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من سجل طبيب مرتبط بنفس Firebase UID.');
     }
-    return Doctor.fromMap(snapshot.docs.first.data());
+    return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
   }
 
   Future<Doctor?> fetchDoctorByEmail(String email) async {
@@ -83,7 +84,7 @@ class FirestoreDoctorRepository implements DoctorRepository {
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من سجل طبيب بنفس البريد الإلكتروني.');
     }
-    return Doctor.fromMap(snapshot.docs.first.data());
+    return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
   }
 
   Future<void> saveDoctor(Doctor doctor) async {
@@ -111,6 +112,14 @@ class FirestoreDoctorRepository implements DoctorRepository {
       status: AccountStatus.active,
       initials: doctor.initials,
       firebaseUid: firebaseUid,
+      availability: doctor.availability,
+      clinic: doctor.clinic,
+      location: doctor.location,
+      rating: doctor.rating,
+      reviews: doctor.reviews,
+      experience: doctor.experience,
+      bio: doctor.bio,
+      services: doctor.services,
       createdAt: doctor.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
