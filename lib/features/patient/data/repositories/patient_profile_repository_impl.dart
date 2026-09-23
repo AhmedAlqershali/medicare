@@ -12,7 +12,7 @@ class PatientProfileRepositoryImpl implements PatientProfileRepository {
     if (patientId == null || patientId.isEmpty) {
       throw StateError('لا توجد جلسة مريض نشطة.');
     }
-    final profile = await FirestorePatientRepository.instance.fetchPatientById(patientId);
+    final profile = await FirestorePatientRepository.instance.fetchPatientById(patientId, organizationId: FirebaseAuthRepository.instance.session.organizationId);
     if (profile == null) throw StateError('لم يتم العثور على ملف المريض.');
     return PatientProfileEntity(
       name: profile.name,
@@ -29,6 +29,7 @@ class PatientProfileRepositoryImpl implements PatientProfileRepository {
     if (patientId == null || patientId.isEmpty) throw StateError('لا توجد جلسة مريض نشطة.');
     await FirestorePatientRepository.instance.updatePatientProfile(
       patientId: patientId,
+      organizationId: FirebaseAuthRepository.instance.session.organizationId!,
       name: profile.name,
       phone: profile.phone,
       birthDate: profile.birthDate,

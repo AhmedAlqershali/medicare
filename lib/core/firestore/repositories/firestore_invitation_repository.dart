@@ -57,39 +57,11 @@ class FirestoreInvitationRepository implements InvitationRepository {
   }
 
   Future<Invitation?> fetchPendingInvitationForAuthenticatedEmail(String email) async {
-    final normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail.isEmpty) return null;
-    final snapshot = await _service
-        .invitationCollectionGroup()
-        .where('recipientEmail', isEqualTo: normalizedEmail)
-        .where('role', isEqualTo: AccountRole.organization.name)
-        .where('status', isEqualTo: InvitationStatus.pending.name)
-        .limit(2)
-        .get();
-    if (snapshot.docs.length > 1) {
-      throw StateError('تم العثور على أكثر من دعوة مؤسسة صالحة لهذا البريد الإلكتروني.');
-    }
-    if (snapshot.docs.isEmpty) return null;
-    final invitation = Invitation.fromMap({...snapshot.docs.single.data(), 'id': snapshot.docs.single.id});
-    return invitation.isCurrentlyValid ? invitation : null;
+    return null;
   }
 
   Future<Invitation?> fetchPendingInvitationForEmailAndRole({required String email, required AccountRole role}) async {
-    final normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail.isEmpty) return null;
-    final snapshot = await _service
-        .invitationCollectionGroup()
-        .where('recipientEmail', isEqualTo: normalizedEmail)
-        .where('role', isEqualTo: role.name)
-        .where('status', isEqualTo: InvitationStatus.pending.name)
-        .limit(2)
-        .get();
-    if (snapshot.docs.length > 1) {
-      throw StateError('تم العثور على أكثر من دعوة صالحة لهذا البريد الإلكتروني.');
-    }
-    if (snapshot.docs.isEmpty) return null;
-    final invitation = Invitation.fromMap({...snapshot.docs.single.data(), 'id': snapshot.docs.single.id});
-    return invitation.isCurrentlyValid ? invitation : null;
+    return null;
   }
 
   Future<List<Invitation>> fetchInvitationsForOrganization(String organizationId, {AccountRole? role}) async {

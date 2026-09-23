@@ -4,6 +4,7 @@ class AppointmentEntity {
   const AppointmentEntity({
     required this.id,
     required this.doctorId,
+    this.clinicId,
     required this.doctorName,
     required this.doctorInitials,
     required this.specialty,
@@ -19,6 +20,7 @@ class AppointmentEntity {
 
   final String id;
   final String doctorId;
+  final String? clinicId;
   final String doctorName;
   final String doctorInitials;
   final String specialty;

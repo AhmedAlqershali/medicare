@@ -82,6 +82,7 @@ class ClinicDetailsScreen extends StatelessWidget {
                       builder: (_) => AppointmentBookingScreen(
                         bookingData: AppointmentBookingData(
                           doctorId: clinic.doctors.first.id,
+                          clinicId: clinic.id,
                           doctorName: clinic.doctors.first.name,
                           doctorInitials: clinic.doctors.first.initials,
                           specialty: clinic.doctors.first.specialty,

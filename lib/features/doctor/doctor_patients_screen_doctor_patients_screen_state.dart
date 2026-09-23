@@ -16,7 +16,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
     if (doctorId.isEmpty) return;
     List<Patient> patients;
     try {
-      patients = await FirestorePatientRepository.instance.fetchPatientsForDoctor(doctorId);
+      patients = await FirestorePatientRepository.instance.fetchPatientsForDoctor(doctorId, organizationId: FirebaseAuthRepository.instance.session.organizationId);
     } catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
       return;

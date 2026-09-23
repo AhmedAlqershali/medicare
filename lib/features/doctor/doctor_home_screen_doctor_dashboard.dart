@@ -23,7 +23,7 @@ class _DoctorDashboardState extends State<_DoctorDashboard> {
     try {
       final items = await DoctorAppointmentsRepositoryImpl().getDoctorAppointments();
       final doctorId = FirebaseAuthRepository.instance.session.doctorId;
-      final patients = doctorId == null ? const [] : await FirestorePatientRepository.instance.fetchPatientsForDoctor(doctorId);
+      final patients = doctorId == null ? const [] : await FirestorePatientRepository.instance.fetchPatientsForDoctor(doctorId, organizationId: FirebaseAuthRepository.instance.session.organizationId);
       if (!mounted) return;
       setState(() {
         _appointments = items;

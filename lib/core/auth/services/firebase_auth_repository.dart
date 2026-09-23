@@ -150,9 +150,9 @@ class FirebaseAuthRepository implements AuthRepository {
           return AuthResult(success: true, message: 'تم تسجيل الدخول بنجاح.', session: _session);
         case AccountRole.doctor:
           final profile = await _firestoreUserProfileRepository.fetchUserProfile(userCredential.user!.uid);
-          final doctorRecord = profile?.doctorId != null && profile?.organizationId != null
+            final doctorRecord = profile?.doctorId != null && profile?.organizationId != null
               ? await _firestoreDoctorRepository.fetchDoctorByIdForOrganization(profile!.organizationId!, profile.doctorId!)
-              : await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail);
+              : null;
           if (doctorRecord == null) {
             return const AuthResult(success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني.');
           }
@@ -180,7 +180,10 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           return AuthResult(success: true, message: 'تم تسجيل الدخول بنجاح.', session: _session);
         case AccountRole.patient:
-          final patientRecord = await _firestorePatientRepository.fetchPatientByEmail(normalizedEmail);
+            final profile = await _firestoreUserProfileRepository.fetchUserProfile(userCredential.user!.uid);
+            final patientRecord = profile?.patientId != null && profile?.organizationId != null
+              ? await _firestorePatientRepository.fetchPatientById(profile!.patientId!, organizationId: profile.organizationId)
+              : null;
           if (patientRecord == null) {
             return const AuthResult(success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني.');
           }
@@ -192,6 +195,7 @@ class FirebaseAuthRepository implements AuthRepository {
           }
           await _firestorePatientRepository.activatePatient(
             patientId: patientRecord.id,
+            organizationId: patientRecord.organizationId,
             firebaseUid: userCredential.user!.uid,
             email: normalizedEmail,
           );
@@ -241,8 +245,8 @@ class FirebaseAuthRepository implements AuthRepository {
       }
 
       if (role == AccountRole.doctor) {
-        final doctorRecord = invitation.doctorId == null
-            ? await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail)
+          final doctorRecord = invitation.doctorId == null
+            ? null
             : await _firestoreDoctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!);
         if (doctorRecord == null) {
           return const AuthResult(success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني في العلاقة الموثوقة.');
@@ -274,15 +278,15 @@ class FirebaseAuthRepository implements AuthRepository {
         isAuthenticated: true,
         currentUser: AuthUser(
             id: userCredential.uid,
-          name: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
+          name: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!))?.name ?? normalizedEmail : normalizedEmail,
           email: normalizedEmail,
           role: role,
           organizationId: invitation.organizationId,
-          doctorId: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.id : null,
+          doctorId: role == AccountRole.doctor ? invitation.doctorId : null,
         ),
         currentRole: role,
         organizationId: invitation.organizationId,
-        doctorId: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.id : null,
+        doctorId: role == AccountRole.doctor ? invitation.doctorId : null,
       );
       return AuthResult(success: true, message: 'تم تفعيل الحساب بنجاح.', session: _session);
     } on FirebaseAuthException catch (exception) {
@@ -303,7 +307,10 @@ class FirebaseAuthRepository implements AuthRepository {
       if (userCredential == null) {
         return const AuthResult(success: false, message: 'تعذر إنشاء حساب المريض في Firebase.');
       }
-      final patientRecord = await _firestorePatientRepository.fetchPatientByEmail(normalizedEmail);
+        final profile = await _firestoreUserProfileRepository.fetchUserProfile(userCredential.uid);
+        final patientRecord = profile?.patientId != null && profile?.organizationId != null
+          ? await _firestorePatientRepository.fetchPatientById(profile!.patientId!, organizationId: profile.organizationId)
+          : null;
       if (patientRecord == null) {
         return const AuthResult(success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني. استخدم نفس البريد الذي أضافه الطبيب.');
       }
@@ -314,7 +321,7 @@ class FirebaseAuthRepository implements AuthRepository {
       if (patientRecord.firebaseUid != null && patientRecord.firebaseUid != userCredential.uid) {
         return const AuthResult(success: false, message: 'هذا المريض مرتبط بالفعل بحساب مستخدم آخر ولا يمكن استخدامه هنا.');
       }
-      await _firestorePatientRepository.activatePatient(patientId: patientRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
+      await _firestorePatientRepository.activatePatient(patientId: patientRecord.id, organizationId: patientRecord.organizationId, firebaseUid: userCredential.uid, email: normalizedEmail);
       await _firestoreUserProfileRepository.linkPatientProfile(
         uid: userCredential.uid,
         email: normalizedEmail,

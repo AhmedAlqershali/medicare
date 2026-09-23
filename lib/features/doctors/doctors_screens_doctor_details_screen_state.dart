@@ -88,6 +88,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                       builder: (_) => AppointmentBookingScreen(
                         bookingData: AppointmentBookingData(
                           doctorId: widget.doctor.id,
+                          clinicId: widget.doctor.clinicId,
                           doctorName: widget.doctor.name,
                           doctorInitials: widget.doctor.initials,
                           specialty: widget.doctor.specialty,

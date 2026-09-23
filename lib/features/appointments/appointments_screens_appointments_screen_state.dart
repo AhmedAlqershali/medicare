@@ -29,6 +29,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     AppointmentData _toAppointmentData(AppointmentEntity entity) => AppointmentData(
       id: entity.id,
       doctorId: entity.doctorId,
+      clinicId: entity.clinicId,
         doctorName: entity.doctorName,
         doctorInitials: entity.doctorInitials,
         specialty: entity.specialty,
@@ -50,6 +51,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   AppointmentBookingData _bookingData(AppointmentData appointment) => AppointmentBookingData(
       doctorId: appointment.doctorId,
+      clinicId: appointment.clinicId,
         doctorName: appointment.doctorName,
         doctorInitials: appointment.doctorInitials,
         specialty: appointment.specialty,

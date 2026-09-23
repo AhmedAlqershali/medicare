@@ -67,7 +67,7 @@ class Doctor {
       'bio': bio,
       'services': services,
     };
-    if (firebaseUid != null) map['firebaseUid'] = firebaseUid;
+    map['firebaseUid'] = firebaseUid;
     if (createdAt != null) map['createdAt'] = createdAt!.toUtc().toIso8601String();
     if (updatedAt != null) map['updatedAt'] = updatedAt!.toUtc().toIso8601String();
     return map;

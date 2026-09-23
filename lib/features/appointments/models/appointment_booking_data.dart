@@ -9,6 +9,7 @@ class AppointmentBookingData {
     required this.clinicName,
     required this.location,
     required this.avatarColor,
+    this.clinicId,
     this.availability = const {},
   });
 
@@ -19,5 +20,6 @@ class AppointmentBookingData {
   final String clinicName;
   final String location;
   final Color avatarColor;
+  final String? clinicId;
   final Map<String, List<String>> availability;
 }

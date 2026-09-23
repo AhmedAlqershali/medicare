@@ -29,6 +29,7 @@ class AppointmentsRepositoryImpl implements AppointmentsRepository {
   AppointmentEntity _fromMap(Map<String, dynamic> appointment) => AppointmentEntity(
       id: appointment['id'] as String? ?? '',
         doctorId: appointment['doctorId'] as String? ?? '',
+        clinicId: appointment['clinicId'] as String?,
         doctorName: appointment['doctorName'] as String? ?? '',
         doctorInitials: appointment['doctorInitials'] as String? ?? '',
         specialty: appointment['specialty'] as String? ?? '',

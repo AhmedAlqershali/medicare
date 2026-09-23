@@ -112,7 +112,7 @@ class FirebaseAuthDataSource {
         if (patientId == null || patientId.isEmpty) {
           throw StateError('ملف المريض لا يحتوي على معرف مريض صالح.');
         }
-        final patient = await _patientRepository.fetchPatientById(patientId);
+        final patient = await _patientRepository.fetchPatientById(patientId, organizationId: profile.organizationId);
         if (patient == null || !patient.accountActivated || patient.firebaseUid != firebaseUser.uid) {
           throw StateError('تعذر التحقق من ملكية سجل المريض لحساب Firebase الحالي.');
         }
@@ -294,30 +294,14 @@ class FirebaseAuthDataSource {
             _session = await _buildSession(userCredential.user!);
             return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: _authUserForDoctor(doctor, userCredential.user!.uid), currentRole: AccountRole.doctor);
           }
-          final doctorRecord = await _doctorRepository.fetchDoctorByEmail(normalizedEmail);
-          if (doctorRecord == null) {
-            return (success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني.', user: null, currentRole: null);
-          }
-          if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.user?.uid) {
-            return (success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.', user: null, currentRole: null);
-          }
-          await _doctorRepository.linkFirebaseUidForOrganization(
-            organizationId: doctorRecord.organizationId,
-            doctorId: doctorRecord.id,
-            firebaseUid: userCredential.user!.uid,
-            email: normalizedEmail,
-          );
-          await _userProfileRepository.linkDoctorProfile(
-            uid: userCredential.user!.uid,
-            email: normalizedEmail,
-            doctorId: doctorRecord.id,
-            organizationId: doctorRecord.organizationId,
-          );
+          return (success: false, message: 'لا يوجد ملف مستخدم مرتبط بسجل طبيب.', user: null, currentRole: null);
           final user = _authUserForDoctor(doctorRecord, userCredential.user!.uid);
           _session = await _buildSession(userCredential.user!);
           return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.doctor);
         case AccountRole.patient:
-          final patientRecord = await _patientRepository.fetchPatientByEmail(normalizedEmail);
+            final patientRecord = profile?.patientId != null && profile?.organizationId != null
+              ? await _patientRepository.fetchPatientById(profile!.patientId!, organizationId: profile.organizationId)
+              : null;
           if (patientRecord == null) {
             return (success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني.', user: null, currentRole: null);
           }
@@ -329,6 +313,7 @@ class FirebaseAuthDataSource {
           }
           await _patientRepository.activatePatient(
             patientId: patientRecord.id,
+            organizationId: patientRecord.organizationId,
             firebaseUid: userCredential.user!.uid,
             email: normalizedEmail,
           );
@@ -377,7 +362,7 @@ class FirebaseAuthDataSource {
 
       if (role == AccountRole.doctor) {
         final doctorRecord = invitation.doctorId == null
-          ? await _doctorRepository.fetchDoctorByEmail(normalizedEmail)
+          ? null
           : await _doctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!);
         if (doctorRecord == null) {
           return (success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني في العلاقة الموثوقة.', user: null, currentRole: null);
@@ -407,11 +392,11 @@ class FirebaseAuthDataSource {
 
       final createdUser = UserAccount(
         id: userCredential.uid,
-        name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
+        name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!))?.name ?? normalizedEmail : normalizedEmail,
         email: normalizedEmail,
         role: role,
         organizationId: invitation.organizationId,
-        doctorId: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.id : null,
+        doctorId: role == AccountRole.doctor ? invitation.doctorId : null,
       );
 
         _session = await _buildSession(userCredential);
@@ -483,23 +468,25 @@ class FirebaseAuthDataSource {
     if (normalizedEmail.isEmpty) return (success: false, message: 'أدخل البريد الإلكتروني الخاص بالمريض.', user: null, currentRole: null);
     if (password.length < 6) return (success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.', user: null, currentRole: null);
 
-    final patientRecord = await _patientRepository.fetchPatientByEmail(normalizedEmail);
-    if (patientRecord == null) {
-      return (success: false, message: 'لا يوجد سجل مريض مطابق لهذا البريد الإلكتروني. استخدم نفس البريد الذي أضافه الطبيب.', user: null, currentRole: null);
-    }
-    if (patientRecord.accountActivated) {
-      return (success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.', user: null, currentRole: null);
-    }
-
     try {
       final userCredential = await createFirebaseAccountIfNeeded(email: normalizedEmail, password: password);
       if (userCredential == null) {
         return (success: false, message: 'تعذر إنشاء حساب المريض في Firebase.', user: null, currentRole: null);
       }
+      final profile = await _userProfileRepository.fetchUserProfile(userCredential.uid);
+      final patientRecord = profile?.patientId != null && profile?.organizationId != null
+          ? await _patientRepository.fetchPatientById(profile!.patientId!, organizationId: profile.organizationId)
+          : null;
+      if (patientRecord == null) {
+        return (success: false, message: 'لا يوجد ملف مستخدم مرتبط بسجل مريض.', user: null, currentRole: null);
+      }
+      if (patientRecord.accountActivated) {
+        return (success: false, message: 'هذا الحساب مفعّل بالفعل. استخدم تسجيل الدخول العادي.', user: null, currentRole: null);
+      }
       if (patientRecord.firebaseUid != null && patientRecord.firebaseUid != userCredential.uid) {
         return (success: false, message: 'هذا المريض مرتبط بالفعل بحساب مستخدم آخر ولا يمكن استخدامه هنا.', user: null, currentRole: null);
       }
-      await _patientRepository.activatePatient(patientId: patientRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
+      await _patientRepository.activatePatient(patientId: patientRecord.id, organizationId: patientRecord.organizationId, firebaseUid: userCredential.uid, email: normalizedEmail);
       await _userProfileRepository.linkPatientProfile(
         uid: userCredential.uid,
         email: normalizedEmail,

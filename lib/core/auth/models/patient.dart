@@ -7,6 +7,7 @@ class Patient {
     required this.email,
     required this.doctorId,
     required this.organizationId,
+    required this.clinicId,
     required this.status,
     required this.accountActivated,
     required this.initials,
@@ -23,6 +24,7 @@ class Patient {
   final String email;
   final String doctorId;
   final String organizationId;
+  final String? clinicId;
   final AccountStatus status;
   final bool accountActivated;
   final String initials;
@@ -40,6 +42,7 @@ class Patient {
       'email': email,
       'doctorId': doctorId,
       'organizationId': organizationId,
+      'clinicId': clinicId,
       'status': status.name,
       'accountActivated': accountActivated,
       'initials': initials,
@@ -47,7 +50,7 @@ class Patient {
     if (phone != null) map['phone'] = phone;
     if (birthDate != null) map['birthDate'] = birthDate;
     if (gender != null) map['gender'] = gender;
-    if (firebaseUid != null) map['firebaseUid'] = firebaseUid;
+    map['firebaseUid'] = firebaseUid;
     if (createdAt != null) map['createdAt'] = createdAt!.toUtc().toIso8601String();
     if (updatedAt != null) map['updatedAt'] = updatedAt!.toUtc().toIso8601String();
     return map;
@@ -59,6 +62,7 @@ class Patient {
         email: map['email'] as String? ?? '',
         doctorId: map['doctorId'] as String? ?? '',
         organizationId: map['organizationId'] as String? ?? '',
+        clinicId: map['clinicId'] as String?,
         status: AccountStatus.values.firstWhere(
           (item) => item.name == (map['status'] as String? ?? AccountStatus.active.name),
           orElse: () => AccountStatus.active,

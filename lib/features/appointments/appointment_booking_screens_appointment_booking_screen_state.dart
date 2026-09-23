@@ -125,7 +125,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
     final session = FirebaseAuthRepository.instance.session;
     final organizationId = session.organizationId;
     final patientId = session.patientId;
-    if (organizationId == null || patientId == null || widget.bookingData.doctorId.isEmpty) {
+    if (session.currentRole != AccountRole.doctor || organizationId == null || patientId == null || widget.bookingData.doctorId.isEmpty) {
       setState(() => _validationMessage = 'تعذر تحديد بيانات الحساب أو الطبيب. أعد تسجيل الدخول وحاول مرة أخرى.');
       return;
     }
@@ -142,6 +142,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
           'patientId': patientId,
           'patientUid': FirebaseAuth.instance.currentUser?.uid,
           'doctorId': widget.bookingData.doctorId,
+          'clinicId': widget.bookingData.clinicId,
           'doctorName': widget.bookingData.doctorName,
           'doctorInitials': widget.bookingData.doctorInitials,
           'specialty': widget.bookingData.specialty,
