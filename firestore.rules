@@ -185,6 +185,14 @@ service cloud.firestore {
       allow delete: if signedIn() && (ownsOrganization(organizationId) || isAdmin());
     }
 
+    match /{path=**}/invitations/{invitationId} {
+      allow read: if signedIn() &&
+        resource.data.get('organizationId', null) is string &&
+        resource.data.get('recipientEmail', resource.data.email) == request.auth.token.email &&
+        resource.data.role == 'doctor' &&
+        resource.data.status == 'pending';
+    }
+
     match /organizations/{organizationId}/doctors/{doctorId} {
       allow read: if signedIn() && (ownsOrganization(organizationId) || isOrganizationMember(organizationId) || isDoctorOfOrganization(organizationId, doctorId) || isPendingDoctorInvitation(organizationId, doctorId) || isAdmin());
 
