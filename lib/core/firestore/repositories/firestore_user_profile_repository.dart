@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../auth/models/account_role.dart';
 import '../firestore_service.dart';
@@ -10,9 +12,21 @@ class FirestoreUserProfileRepository {
   final FirestoreService _service;
 
   Future<UserProfile?> fetchUserProfile(String uid) async {
-    final snapshot = await _service.userDocument(uid).get();
-    if (!snapshot.exists || snapshot.data() == null) return null;
-    return UserProfile.fromMap(snapshot.data()!);
+    final path = 'users/$uid';
+    debugPrint('[FirestoreDiagnostic] user profile request: uid=$uid, projectId=${Firebase.apps.isEmpty ? 'unavailable' : Firebase.app().options.projectId}, path=$path, operation=document.get');
+    try {
+      final snapshot = await _service.userDocument(uid).get();
+      if (!snapshot.exists || snapshot.data() == null) {
+        debugPrint('[FirestoreDiagnostic] user profile result: exists=false, role=null, organizationId=null, clinicId=null');
+        return null;
+      }
+      final profile = UserProfile.fromMap(snapshot.data()!);
+      debugPrint('[FirestoreDiagnostic] user profile result: exists=true, role=${profile.role.name}, organizationId=${profile.organizationId}, clinicId=${profile.clinicId}, doctorId=${profile.doctorId}, patientId=${profile.patientId}');
+      return profile;
+    } on FirebaseException catch (error) {
+      debugPrint('[FirestoreDiagnostic] user profile request failed: code=${error.code}, message=${error.message}');
+      rethrow;
+    }
   }
 
   Future<UserProfile> createOrUpdateUserProfile({

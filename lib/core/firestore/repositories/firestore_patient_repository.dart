@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../auth/models/account_status.dart';
 import '../../auth/repositories/doctor_repository.dart';
 import '../../auth/models/patient.dart';
 import '../../auth/repositories/patient_repository.dart';
+import '../../auth/services/firebase_auth_repository.dart';
 import '../firestore_service.dart';
 import 'firestore_doctor_repository.dart';
 
@@ -29,8 +33,15 @@ class FirestorePatientRepository implements PatientRepository {
 
   Future<List<Patient>> fetchPatientsForOrganization(String organizationId) async {
     if (organizationId.trim().isEmpty) throw StateError('Organization id is required to read patients.');
-    final snapshot = await _service.patientCollectionForOrganization(organizationId).get();
-    return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
+    final path = 'organizations/$organizationId/patients';
+    debugPrint('[FirestoreDiagnostic] patients request: uid=${FirebaseAuth.instance.currentUser?.uid}, projectId=${Firebase.apps.isEmpty ? 'unavailable' : Firebase.app().options.projectId}, organizationId=$organizationId, sessionRole=${FirebaseAuthRepository.instance.session.currentRole?.name}, path=$path, operation=collection.get');
+    try {
+      final snapshot = await _service.patientCollectionForOrganization(organizationId).get();
+      return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
+    } on FirebaseException catch (error) {
+      debugPrint('[FirestoreDiagnostic] patients request failed: code=${error.code}, message=${error.message}');
+      rethrow;
+    }
   }
 
   @override

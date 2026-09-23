@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../auth/models/account_status.dart';
 import '../../auth/models/organization.dart';
+import '../../auth/services/firebase_auth_repository.dart';
 import '../firestore_paths.dart';
 import '../firestore_service.dart';
 
@@ -23,11 +27,18 @@ class FirestoreClinicRepository {
   }
 
   Future<List<Map<String, dynamic>>> fetchClinicsForOrganization(String organizationId) async {
-    final snapshot = await _service.clinicCollection(organizationId).get();
-    return snapshot.docs
-        .map((document) => {...document.data(), 'id': document.id})
-        .where((clinic) => clinic['organizationId'] == organizationId)
-        .toList();
+    final path = 'organizations/$organizationId/clinics';
+    debugPrint('[FirestoreDiagnostic] clinics request: uid=${FirebaseAuth.instance.currentUser?.uid}, projectId=${Firebase.apps.isEmpty ? 'unavailable' : Firebase.app().options.projectId}, organizationId=$organizationId, sessionRole=${FirebaseAuthRepository.instance.session.currentRole?.name}, path=$path, operation=collection.get');
+    try {
+      final snapshot = await _service.clinicCollection(organizationId).get();
+      return snapshot.docs
+          .map((document) => {...document.data(), 'id': document.id})
+          .where((clinic) => clinic['organizationId'] == organizationId)
+          .toList();
+    } on FirebaseException catch (error) {
+      debugPrint('[FirestoreDiagnostic] clinics request failed: code=${error.code}, message=${error.message}');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> createClinic({required String organizationId, required Map<String, dynamic> clinic}) async {
