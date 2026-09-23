@@ -29,7 +29,7 @@ class FirestoreUserProfileRepository {
     final existing = await fetchUserProfile(uid);
     final profile = UserProfile(
       uid: uid,
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       role: role,
       organizationId: organizationId,
       clinicId: clinicId,
@@ -54,7 +54,7 @@ class FirestoreUserProfileRepository {
   }) async {
     await _service.userDocument(uid).set({
       'uid': uid,
-      'email': email.trim(),
+      'email': email.trim().toLowerCase(),
       'patientId': patientId,
       'doctorId': doctorId,
       'organizationId': organizationId,
@@ -71,7 +71,7 @@ class FirestoreUserProfileRepository {
   }) async {
     await _service.userDocument(uid).set({
       'uid': uid,
-      'email': email.trim(),
+      'email': email.trim().toLowerCase(),
       'doctorId': doctorId,
       'organizationId': organizationId,
       'role': AccountRole.doctor.name,
@@ -88,7 +88,7 @@ class FirestoreUserProfileRepository {
   }) async {
     final profile = <String, dynamic>{
       'uid': uid,
-      'email': email.trim(),
+      'email': email.trim().toLowerCase(),
       'organizationId': organizationId,
       'clinicId': clinicId,
       'role': AccountRole.organization.name,

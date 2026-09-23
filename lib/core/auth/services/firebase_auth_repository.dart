@@ -86,8 +86,8 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  AuthUser _authUserForPatient(Patient patient) => AuthUser(
-        id: patient.id,
+    AuthUser _authUserForPatient(Patient patient, String firebaseUid) => AuthUser(
+      id: firebaseUid,
         name: patient.name,
         email: patient.email,
         role: AccountRole.patient,
@@ -96,8 +96,8 @@ class FirebaseAuthRepository implements AuthRepository {
         patientId: patient.id,
       );
 
-  AuthUser _authUserForDoctor(Doctor doctor) => AuthUser(
-        id: doctor.id,
+    AuthUser _authUserForDoctor(Doctor doctor, String firebaseUid) => AuthUser(
+      id: firebaseUid,
         name: doctor.name,
         email: doctor.email,
         role: AccountRole.doctor,
@@ -105,8 +105,8 @@ class FirebaseAuthRepository implements AuthRepository {
         doctorId: doctor.id,
       );
 
-  AuthUser _authUserForOrganization(Organization organization) => AuthUser(
-        id: organization.id,
+    AuthUser _authUserForOrganization(Organization organization, String firebaseUid) => AuthUser(
+      id: firebaseUid,
         name: organization.name,
         email: organization.email,
         role: AccountRole.organization,
@@ -143,7 +143,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           _session = AuthSession(
             isAuthenticated: true,
-            currentUser: _authUserForOrganization(organizationRecord),
+              currentUser: _authUserForOrganization(organizationRecord, userCredential.user!.uid),
             currentRole: AccountRole.organization,
             organizationId: organizationRecord.id,
           );
@@ -169,7 +169,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           _session = AuthSession(
             isAuthenticated: true,
-            currentUser: _authUserForDoctor(doctorRecord),
+              currentUser: _authUserForDoctor(doctorRecord, userCredential.user!.uid),
             currentRole: AccountRole.doctor,
             organizationId: doctorRecord.organizationId,
             doctorId: doctorRecord.id,
@@ -200,7 +200,7 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           _session = AuthSession(
             isAuthenticated: true,
-            currentUser: _authUserForPatient(patientRecord),
+              currentUser: _authUserForPatient(patientRecord, userCredential.user!.uid),
             currentRole: AccountRole.patient,
             organizationId: patientRecord.organizationId,
             doctorId: patientRecord.doctorId,
@@ -267,7 +267,7 @@ class FirebaseAuthRepository implements AuthRepository {
       _session = AuthSession(
         isAuthenticated: true,
         currentUser: AuthUser(
-          id: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.id ?? invitation.doctorId ?? '' : invitation.organizationId,
+            id: userCredential.uid,
           name: role == AccountRole.doctor ? (await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
           email: normalizedEmail,
           role: role,
@@ -319,7 +319,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       _session = AuthSession(
         isAuthenticated: true,
-        currentUser: _authUserForPatient(patientRecord),
+        currentUser: _authUserForPatient(patientRecord, userCredential.uid),
         currentRole: AccountRole.patient,
         organizationId: patientRecord.organizationId,
         doctorId: patientRecord.doctorId,

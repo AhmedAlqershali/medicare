@@ -35,13 +35,16 @@ class UserProfile {
         'updatedAt': updatedAt.toUtc().toIso8601String(),
       };
 
-  static UserProfile fromMap(Map<String, dynamic> map) => UserProfile(
+  static UserProfile fromMap(Map<String, dynamic> map) {
+    final roleValue = map['role'] as String?;
+    final role = AccountRole.values.firstWhere(
+      (candidate) => candidate.name == roleValue,
+      orElse: () => throw FormatException('Unknown user profile role.'),
+    );
+    return UserProfile(
         uid: map['uid'] as String? ?? '',
         email: map['email'] as String? ?? '',
-        role: AccountRole.values.firstWhere(
-          (role) => role.name == (map['role'] as String? ?? AccountRole.patient.name),
-          orElse: () => AccountRole.patient,
-        ),
+        role: role,
         organizationId: map['organizationId'] as String?,
         clinicId: map['clinicId'] as String?,
         doctorId: map['doctorId'] as String?,
@@ -49,4 +52,5 @@ class UserProfile {
         createdAt: map['createdAt'] is String ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
         updatedAt: map['updatedAt'] is String ? DateTime.parse(map['updatedAt'] as String) : DateTime.now(),
       );
+  }
 }

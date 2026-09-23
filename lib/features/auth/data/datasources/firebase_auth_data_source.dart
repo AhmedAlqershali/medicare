@@ -48,6 +48,89 @@ class FirebaseAuthDataSource {
 
   AccountRole? get currentRole => _session.currentRole;
 
+  Future<AuthSession> _buildSession(User firebaseUser) async {
+    final profile = await _userProfileRepository.fetchUserProfile(firebaseUser.uid);
+    if (profile == null || profile.uid != firebaseUser.uid) {
+      throw StateError('لم يتم العثور على ملف المستخدم المرتبط بحساب Firebase.');
+    }
+
+    switch (profile.role) {
+      case AccountRole.organization:
+        final organizationId = profile.organizationId;
+        if (organizationId == null || organizationId.isEmpty) {
+          throw StateError('ملف المؤسسة لا يحتوي على معرف مؤسسة صالح.');
+        }
+        final organization = await _organizationRepository.fetchOrganizationById(organizationId);
+        if (organization == null ||
+            organization.status != AccountStatus.active ||
+            (organization.firebaseUid != null && organization.firebaseUid != firebaseUser.uid)) {
+          throw StateError('تعذر التحقق من ملكية المؤسسة لحساب Firebase الحالي.');
+        }
+        return AuthSession(
+          isAuthenticated: true,
+          currentUser: AuthUser(
+            id: firebaseUser.uid,
+            name: organization.name,
+            email: firebaseUser.email ?? profile.email,
+            role: AccountRole.organization,
+            organizationId: organization.id,
+            clinicId: profile.clinicId,
+          ),
+          currentRole: AccountRole.organization,
+          organizationId: organization.id,
+          clinicId: profile.clinicId,
+        );
+      case AccountRole.doctor:
+        final doctorId = profile.doctorId;
+        if (doctorId == null || doctorId.isEmpty) {
+          throw StateError('ملف الطبيب لا يحتوي على معرف طبيب صالح.');
+        }
+        final doctor = await _doctorRepository.fetchDoctorById(doctorId);
+        if (doctor == null || doctor.status != AccountStatus.active || doctor.firebaseUid != firebaseUser.uid) {
+          throw StateError('تعذر التحقق من عضوية الطبيب لحساب Firebase الحالي.');
+        }
+        return AuthSession(
+          isAuthenticated: true,
+          currentUser: AuthUser(
+            id: firebaseUser.uid,
+            name: doctor.name,
+            email: firebaseUser.email ?? doctor.email,
+            role: AccountRole.doctor,
+            organizationId: doctor.organizationId,
+            doctorId: doctor.id,
+          ),
+          currentRole: AccountRole.doctor,
+          organizationId: doctor.organizationId,
+          doctorId: doctor.id,
+        );
+      case AccountRole.patient:
+        final patientId = profile.patientId;
+        if (patientId == null || patientId.isEmpty) {
+          throw StateError('ملف المريض لا يحتوي على معرف مريض صالح.');
+        }
+        final patient = await _patientRepository.fetchPatientById(patientId);
+        if (patient == null || !patient.accountActivated || patient.firebaseUid != firebaseUser.uid) {
+          throw StateError('تعذر التحقق من ملكية سجل المريض لحساب Firebase الحالي.');
+        }
+        return AuthSession(
+          isAuthenticated: true,
+          currentUser: AuthUser(
+            id: firebaseUser.uid,
+            name: patient.name,
+            email: firebaseUser.email ?? patient.email,
+            role: AccountRole.patient,
+            organizationId: patient.organizationId,
+            doctorId: patient.doctorId,
+            patientId: patient.id,
+          ),
+          currentRole: AccountRole.patient,
+          organizationId: patient.organizationId,
+          doctorId: patient.doctorId,
+          patientId: patient.id,
+        );
+    }
+  }
+
   Future<void> restoreSession() async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser == null) {
@@ -56,54 +139,7 @@ class FirebaseAuthDataSource {
     }
 
     try {
-      final profile = await _userProfileRepository.fetchUserProfile(firebaseUser.uid);
-      if (profile == null) throw StateError('لم يتم العثور على ملف المستخدم المرتبط بحساب Firebase.');
-
-      switch (profile.role) {
-        case AccountRole.organization:
-          final organizationId = profile.organizationId;
-          if (organizationId == null || organizationId.isEmpty) throw StateError('ملف المؤسسة لا يحتوي على معرف مؤسسة صالح.');
-          final organization = await _organizationRepository.fetchOrganizationById(organizationId);
-          if (organization == null || organization.status != AccountStatus.active || (organization.firebaseUid != null && organization.firebaseUid != firebaseUser.uid)) {
-            throw StateError('تعذر التحقق من ملكية المؤسسة لحساب Firebase الحالي.');
-          }
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(id: firebaseUser.uid, name: organization.name, email: firebaseUser.email ?? profile.email, role: AccountRole.organization, organizationId: organization.id, clinicId: profile.clinicId),
-            currentRole: AccountRole.organization,
-            organizationId: organization.id,
-            clinicId: profile.clinicId,
-          );
-        case AccountRole.doctor:
-          final doctorId = profile.doctorId;
-          if (doctorId == null || doctorId.isEmpty) throw StateError('ملف الطبيب لا يحتوي على معرف طبيب صالح.');
-          final doctor = await _doctorRepository.fetchDoctorById(doctorId);
-          if (doctor == null || doctor.status != AccountStatus.active || doctor.firebaseUid != firebaseUser.uid) {
-            throw StateError('تعذر التحقق من عضوية الطبيب لحساب Firebase الحالي.');
-          }
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(id: doctor.id, name: doctor.name, email: firebaseUser.email ?? doctor.email, role: AccountRole.doctor, organizationId: doctor.organizationId, doctorId: doctor.id),
-            currentRole: AccountRole.doctor,
-            organizationId: doctor.organizationId,
-            doctorId: doctor.id,
-          );
-        case AccountRole.patient:
-          final patientId = profile.patientId;
-          if (patientId == null || patientId.isEmpty) throw StateError('ملف المريض لا يحتوي على معرف مريض صالح.');
-          final patient = await _patientRepository.fetchPatientById(patientId);
-          if (patient == null || !patient.accountActivated || patient.firebaseUid != firebaseUser.uid) {
-            throw StateError('تعذر التحقق من ملكية سجل المريض لحساب Firebase الحالي.');
-          }
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(id: patient.id, name: patient.name, email: firebaseUser.email ?? patient.email, role: AccountRole.patient, organizationId: patient.organizationId, doctorId: patient.doctorId, patientId: patient.id),
-            currentRole: AccountRole.patient,
-            organizationId: patient.organizationId,
-            doctorId: patient.doctorId,
-            patientId: patient.id,
-          );
-      }
+      _session = await _buildSession(firebaseUser);
     } catch (_) {
       await _firebaseAuth.signOut();
       _session = const AuthSession.signedOut();
@@ -159,8 +195,8 @@ class FirebaseAuthDataSource {
     }
   }
 
-  UserAccount _authUserForPatient(Patient patient) => UserAccount(
-        id: patient.id,
+    UserAccount _authUserForPatient(Patient patient, String firebaseUid) => UserAccount(
+      id: firebaseUid,
         name: patient.name,
         email: patient.email,
         role: AccountRole.patient,
@@ -169,8 +205,8 @@ class FirebaseAuthDataSource {
         patientId: patient.id,
       );
 
-  UserAccount _authUserForDoctor(Doctor doctor) => UserAccount(
-        id: doctor.id,
+    UserAccount _authUserForDoctor(Doctor doctor, String firebaseUid) => UserAccount(
+      id: firebaseUid,
         name: doctor.name,
         email: doctor.email,
         role: AccountRole.doctor,
@@ -178,8 +214,8 @@ class FirebaseAuthDataSource {
         doctorId: doctor.id,
       );
 
-  UserAccount _authUserForOrganization(Organization organization) => UserAccount(
-        id: organization.id,
+    UserAccount _authUserForOrganization(Organization organization, String firebaseUid) => UserAccount(
+      id: firebaseUid,
         name: organization.name,
         email: organization.email,
         role: AccountRole.organization,
@@ -191,18 +227,26 @@ class FirebaseAuthDataSource {
     required String email,
     required String password,
   }) async {
-    final normalizedEmail = email.trim();
+    final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty || password.isEmpty) {
       return (success: false, message: 'أدخل البريد الإلكتروني وكلمة المرور.', user: null, currentRole: null);
     }
 
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: normalizedEmail, password: password);
+        final profile = await _userProfileRepository.fetchUserProfile(userCredential.user!.uid);
+        if (profile != null && profile.role != role) {
+          return (
+            success: false,
+            message: 'لا يمكن الدخول من شاشة دور مختلف عن دور الحساب.',
+            user: null,
+            currentRole: null,
+          );
+        }
       switch (role) {
         case AccountRole.organization:
-          final invitedProfile = await _userProfileRepository.fetchUserProfile(userCredential.user!.uid);
-          if (invitedProfile?.role == AccountRole.organization && invitedProfile?.organizationId != null) {
-            final invitedOrganization = await _organizationRepository.fetchOrganizationById(invitedProfile!.organizationId!);
+            if (profile?.role == AccountRole.organization && profile?.organizationId != null) {
+              final invitedOrganization = await _organizationRepository.fetchOrganizationById(profile!.organizationId!);
             if (invitedOrganization == null || invitedOrganization.status != AccountStatus.active) {
               return (success: false, message: 'المؤسسة المرتبطة بهذا الحساب غير موجودة أو غير نشطة.', user: null, currentRole: null);
             }
@@ -213,20 +257,9 @@ class FirebaseAuthDataSource {
               role: AccountRole.organization,
               organizationId: invitedOrganization.id,
               clinicId: invitedProfile.clinicId,
+                clinicId: profile.clinicId,
             );
-            _session = AuthSession(
-              isAuthenticated: true,
-              currentUser: AuthUser(
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                organizationId: user.organizationId,
-                clinicId: user.clinicId,
-              ),
-              currentRole: AccountRole.organization,
-              organizationId: invitedOrganization.id,
-            );
+            _session = await _buildSession(userCredential.user!);
             return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.organization);
           }
           final organizationRecord = await _organizationRepository.fetchOrganizationByEmail(normalizedEmail);
@@ -246,21 +279,8 @@ class FirebaseAuthDataSource {
             email: normalizedEmail,
             organizationId: organizationRecord.id,
           );
-          final user = _authUserForOrganization(organizationRecord);
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              organizationId: user.organizationId,
-              doctorId: user.doctorId,
-              patientId: user.patientId,
-            ),
-            currentRole: AccountRole.organization,
-            organizationId: organizationRecord.id,
-          );
+          final user = _authUserForOrganization(organizationRecord, userCredential.user!.uid);
+          _session = await _buildSession(userCredential.user!);
           return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.organization);
         case AccountRole.doctor:
           final doctorRecord = await _doctorRepository.fetchDoctorByEmail(normalizedEmail);
@@ -281,22 +301,8 @@ class FirebaseAuthDataSource {
             doctorId: doctorRecord.id,
             organizationId: doctorRecord.organizationId,
           );
-          final user = _authUserForDoctor(doctorRecord);
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              organizationId: user.organizationId,
-              doctorId: user.doctorId,
-              patientId: user.patientId,
-            ),
-            currentRole: AccountRole.doctor,
-            organizationId: doctorRecord.organizationId,
-            doctorId: doctorRecord.id,
-          );
+          final user = _authUserForDoctor(doctorRecord, userCredential.user!.uid);
+          _session = await _buildSession(userCredential.user!);
           return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.doctor);
         case AccountRole.patient:
           final patientRecord = await _patientRepository.fetchPatientByEmail(normalizedEmail);
@@ -321,29 +327,17 @@ class FirebaseAuthDataSource {
             doctorId: patientRecord.doctorId,
             organizationId: patientRecord.organizationId,
           );
-          final user = _authUserForPatient(patientRecord);
-          _session = AuthSession(
-            isAuthenticated: true,
-            currentUser: AuthUser(
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              organizationId: user.organizationId,
-              doctorId: user.doctorId,
-              patientId: user.patientId,
-            ),
-            currentRole: AccountRole.patient,
-            organizationId: patientRecord.organizationId,
-            doctorId: patientRecord.doctorId,
-            patientId: patientRecord.id,
-          );
+          final user = _authUserForPatient(patientRecord, userCredential.user!.uid);
+          _session = await _buildSession(userCredential.user!);
           return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.patient);
       }
     } on FirebaseAuthException catch (exception) {
       return (success: false, message: _mapFirebaseAuthError(exception), user: null, currentRole: null);
     } on StateError catch (error) {
       return (success: false, message: error.message, user: null, currentRole: null);
+      } on FormatException catch (error) {
+        return (success: false, message: error.message, user: null, currentRole: null);
+      }
     }
   }
 
@@ -378,6 +372,9 @@ class FirebaseAuthDataSource {
         if (doctorRecord.organizationId != invitation.organizationId) {
           return (success: false, message: 'لا يملك هذا الطبيب صلاحية تسجيل الدخول في هذه المؤسسة.', user: null, currentRole: null);
         }
+          if (invitation.doctorId != null && invitation.doctorId != doctorRecord.id) {
+            return (success: false, message: 'الدعوة لا تطابق سجل الطبيب الموثوق.', user: null, currentRole: null);
+          }
         if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.uid) {
           return (success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.', user: null, currentRole: null);
         }
@@ -396,7 +393,8 @@ class FirebaseAuthDataSource {
       await _invitationRepository.saveInvitation(organizationId: invitation.organizationId, invitation: updatedInvitation);
 
       final createdUser = UserAccount(
-        id: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.id ?? invitation.doctorId ?? '' : invitation.organizationId,
+        id: userCredential.uid,
+          id: userCredential.uid,
           name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
         email: normalizedEmail,
         role: role,
@@ -404,27 +402,15 @@ class FirebaseAuthDataSource {
         doctorId: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.id : null,
       );
 
-      _session = AuthSession(
-        isAuthenticated: true,
-        currentUser: AuthUser(
-          id: createdUser.id,
-          name: createdUser.name,
-          email: createdUser.email,
-          role: createdUser.role,
-          organizationId: createdUser.organizationId,
-          doctorId: createdUser.doctorId,
-          patientId: createdUser.patientId,
-        ),
-        currentRole: role,
-        organizationId: invitation.organizationId,
-        doctorId: role == AccountRole.doctor ? createdUser.doctorId : null,
-      );
+        _session = await _buildSession(userCredential);
 
       return (success: true, message: 'تم تفعيل الحساب بنجاح.', user: createdUser, currentRole: role);
     } on FirebaseAuthException catch (exception) {
       return (success: false, message: exception.message ?? _mapFirebaseAuthError(exception), user: null, currentRole: null);
     } on StateError catch (error) {
       return (success: false, message: error.message, user: null, currentRole: null);
+      } on FormatException catch (error) {
+        return (success: false, message: error.message, user: null, currentRole: null);
     }
   }
 
@@ -458,24 +444,22 @@ class FirebaseAuthDataSource {
         organizationId: invitation.organizationId,
         clinicId: invitation.clinicId,
       );
-      _session = AuthSession(
-        isAuthenticated: true,
-        currentUser: AuthUser(
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          organizationId: user.organizationId,
-          clinicId: user.clinicId,
-        ),
-        currentRole: AccountRole.organization,
-        organizationId: invitation.organizationId,
-      );
+        await _userProfileRepository.linkOrganizationProfile(
+          uid: firebaseUser.uid,
+          email: email,
+          organizationId: invitation.organizationId,
+          clinicId: invitation.clinicId,
+          invitationId: invitation.id,
+        );
+        final session = await _buildSession(firebaseUser);
+        _session = session;
       return (success: true, message: 'تم إنشاء حساب المؤسسة بنجاح.', user: user, currentRole: AccountRole.organization);
     } on FirebaseAuthException catch (exception) {
       return (success: false, message: exception.message ?? _mapFirebaseAuthError(exception), user: null, currentRole: null);
     } on StateError catch (error) {
       return (success: false, message: error.message, user: null, currentRole: null);
+      } on FormatException catch (error) {
+        return (success: false, message: error.message, user: null, currentRole: null);
     }
   }
 
@@ -483,7 +467,7 @@ class FirebaseAuthDataSource {
     required String email,
     required String password,
   }) async {
-    final normalizedEmail = email.trim();
+    final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty) return (success: false, message: 'أدخل البريد الإلكتروني الخاص بالمريض.', user: null, currentRole: null);
     if (password.length < 6) return (success: false, message: 'استخدم ٦ أحرف أو أكثر لكلمة المرور.', user: null, currentRole: null);
 
@@ -512,28 +496,15 @@ class FirebaseAuthDataSource {
         organizationId: patientRecord.organizationId,
       );
 
-      final user = _authUserForPatient(patientRecord);
-      _session = AuthSession(
-        isAuthenticated: true,
-        currentUser: AuthUser(
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          organizationId: user.organizationId,
-          doctorId: user.doctorId,
-          patientId: user.patientId,
-        ),
-        currentRole: AccountRole.patient,
-        organizationId: patientRecord.organizationId,
-        doctorId: patientRecord.doctorId,
-        patientId: patientRecord.id,
-      );
+      final user = _authUserForPatient(patientRecord, userCredential.uid);
+        _session = await _buildSession(userCredential);
       return (success: true, message: 'تم تفعيل حساب المريض بنجاح.', user: user, currentRole: AccountRole.patient);
     } on FirebaseAuthException catch (exception) {
       return (success: false, message: exception.message ?? _mapFirebaseAuthError(exception), user: null, currentRole: null);
     } on StateError catch (error) {
       return (success: false, message: error.message, user: null, currentRole: null);
+      } on FormatException catch (error) {
+        return (success: false, message: error.message, user: null, currentRole: null);
     }
   }
 
