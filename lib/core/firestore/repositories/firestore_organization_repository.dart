@@ -110,7 +110,10 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
       createdAt: organization.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    await saveOrganization(updatedOrganization);
+    await _service.organizationDocument(updatedOrganization.id).set({
+      'firebaseUid': updatedOrganization.firebaseUid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<List<Organization>> fetchOrganizations() async {

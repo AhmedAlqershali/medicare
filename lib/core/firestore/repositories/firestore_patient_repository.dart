@@ -34,10 +34,15 @@ class FirestorePatientRepository implements PatientRepository {
 
   Future<List<Patient>> fetchPatientsForOrganization(String organizationId) async {
     if (organizationId.trim().isEmpty) throw StateError('Organization id is required to read patients.');
-    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
+    final doctorsSnapshot = await _service.doctorCollectionForOrganization(organizationId).get();
+    final nestedSnapshots = await Future.wait([
+      for (final doctor in doctorsSnapshot.docs)
+        _service.patientCollectionForDoctor(organizationId, doctor.id).get(),
+    ]);
     final legacySnapshot = await _service.firestore.collection(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
     return _uniquePatients([
-      ...nestedSnapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
+      for (final snapshot in nestedSnapshots)
+        ...snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
       ...legacySnapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
     ]);
   }

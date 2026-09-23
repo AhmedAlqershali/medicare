@@ -15,6 +15,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
   int _appointmentsCount = 0;
   bool _loading = true;
   String? _error;
+  List<String> _sectionErrors = const [];
   String _organizationName = '';
 
   @override
@@ -37,11 +38,12 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
       return;
     }
     try {
+      final sectionErrors = <String>[];
       final results = await Future.wait([
-        const OrganizationClinicsRepositoryImpl().getOrganizationClinics(),
-        const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors(),
-        FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId),
-        FirestoreAppointmentRepository.instance.fetchAppointmentsForOrganization(organizationId),
+        _loadSection('العيادات', const OrganizationClinicsRepositoryImpl().getOrganizationClinics(), const <OrganizationClinic>[], sectionErrors),
+        _loadSection('الأطباء', const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors(), const <OrganizationDoctor>[], sectionErrors),
+        _loadSection('المرضى', FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId), const [], sectionErrors),
+        _loadSection('المواعيد', FirestoreAppointmentRepository.instance.fetchAppointmentsForOrganization(organizationId), const [], sectionErrors),
       ]);
       final clinics = results[0] as List<OrganizationClinic>;
       final doctors = results[1] as List<OrganizationDoctor>;
@@ -52,6 +54,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
       if (!mounted) return;
       setState(() {
         _loading = false;
+        _sectionErrors = sectionErrors;
         _clinics = clinics;
         _doctors = doctors;
         _patientsCount = patients.length;
@@ -63,6 +66,15 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
         _loading = false;
         _error = error.toString();
       });
+    }
+  }
+
+  Future<T> _loadSection<T>(String label, Future<T> request, T fallback, List<String> errors) async {
+    try {
+      return await request;
+    } catch (error) {
+      errors.add('$label: $error');
+      return fallback;
     }
   }
 
@@ -85,6 +97,10 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
                   Text(_organizationName, style: TextStyle(color: AppColors.muted, fontSize: 13, height: 1.45)),
                 ])),
               ]),
+              if (_sectionErrors.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text('تعذر تحميل بعض الأقسام:\n${_sectionErrors.join('\n')}', style: const TextStyle(color: Color(0xFFC84C4C), fontSize: 12, height: 1.4)),
+              ],
               const SizedBox(height: AppSpacing.xl),
               Text('ملخص الإدارة', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),

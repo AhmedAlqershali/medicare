@@ -109,6 +109,8 @@ class _OrganizationClinicDetailsScreenState extends State<OrganizationClinicDeta
                 }
               })),
               const SizedBox(height: AppSpacing.sm),
+              SizedBox(width: double.infinity, child: OutlinedButton.icon(onPressed: () => setState(() => _clinic = _clinic.copyWith(status: _clinic.status == 'نشطة' ? 'غير متاحة' : 'نشطة')), icon: const Icon(Icons.swap_horiz_rounded), label: const Text('تغيير الحالة'))),
+              const SizedBox(height: AppSpacing.sm),
               SizedBox(width: double.infinity, child: OutlinedButton.icon(onPressed: _addDepartment, icon: const Icon(Icons.add_rounded), label: const Text('إدارة الأقسام'))),
             ]),
           ),

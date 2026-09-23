@@ -97,11 +97,39 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
         _ => AccountStatus.pending,
       };
 
-  void _toggleStatus() {
-    setState(() {
-      final nextStatus = _doctor.status == 'نشط' ? 'غير متاح' : 'نشط';
-      _doctor = _doctor.copyWith(status: nextStatus);
-    });
+  Future<void> _toggleStatus() async {
+    try {
+      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+      if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بالجلسة الحالية.');
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, _doctor.id);
+      if (doctor == null) throw StateError('تعذر العثور على الطبيب داخل المؤسسة الحالية.');
+      final nextStatus = _doctor.status == 'نشط' ? AccountStatus.inactive : AccountStatus.active;
+      await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
+        id: doctor.id,
+        name: doctor.name,
+        email: doctor.email,
+        organizationId: doctor.organizationId,
+        specialty: doctor.specialty,
+        status: nextStatus,
+        initials: doctor.initials,
+        availability: doctor.availability,
+        clinic: doctor.clinic,
+        clinicId: doctor.clinicId,
+        phone: doctor.phone,
+        location: doctor.location,
+        rating: doctor.rating,
+        reviews: doctor.reviews,
+        experience: doctor.experience,
+        bio: doctor.bio,
+        services: doctor.services,
+        firebaseUid: doctor.firebaseUid,
+        createdAt: doctor.createdAt,
+        updatedAt: DateTime.now(),
+      ));
+      if (mounted) setState(() => _doctor = _doctor.copyWith(status: nextStatus == AccountStatus.active ? 'نشط' : 'غير متاح'));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
   }
 
   void _showSchedule() {
