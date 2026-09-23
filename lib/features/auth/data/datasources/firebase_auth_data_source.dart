@@ -256,8 +256,7 @@ class FirebaseAuthDataSource {
               email: normalizedEmail,
               role: AccountRole.organization,
               organizationId: invitedOrganization.id,
-              clinicId: invitedProfile.clinicId,
-                clinicId: profile.clinicId,
+              clinicId: profile.clinicId,
             );
             _session = await _buildSession(userCredential.user!);
             return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.organization);
@@ -337,7 +336,6 @@ class FirebaseAuthDataSource {
       return (success: false, message: error.message, user: null, currentRole: null);
       } on FormatException catch (error) {
         return (success: false, message: error.message, user: null, currentRole: null);
-      }
     }
   }
 
@@ -394,8 +392,7 @@ class FirebaseAuthDataSource {
 
       final createdUser = UserAccount(
         id: userCredential.uid,
-          id: userCredential.uid,
-          name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
+        name: role == AccountRole.doctor ? (await _doctorRepository.fetchDoctorByEmail(normalizedEmail))?.name ?? normalizedEmail : normalizedEmail,
         email: normalizedEmail,
         role: role,
         organizationId: invitation.organizationId,
