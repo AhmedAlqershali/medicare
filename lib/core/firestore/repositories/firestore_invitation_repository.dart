@@ -57,11 +57,40 @@ class FirestoreInvitationRepository implements InvitationRepository {
   }
 
   Future<Invitation?> fetchPendingInvitationForAuthenticatedEmail(String email) async {
-    return null;
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) return null;
+    final snapshot = await _service.firestore
+        .collectionGroup(FirestorePaths.invitations)
+      .where('recipientEmail', isEqualTo: normalizedEmail)
+        .where('role', isEqualTo: AccountRole.organization.name)
+        .where('status', isEqualTo: InvitationStatus.pending.name)
+        .limit(2)
+        .get();
+    return _pendingInvitationFromSnapshot(snapshot, normalizedEmail, AccountRole.organization);
   }
 
   Future<Invitation?> fetchPendingInvitationForEmailAndRole({required String email, required AccountRole role}) async {
-    return null;
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty) return null;
+    final snapshot = await _service.firestore
+        .collectionGroup(FirestorePaths.invitations)
+      .where('recipientEmail', isEqualTo: normalizedEmail)
+        .where('role', isEqualTo: role.name)
+        .where('status', isEqualTo: InvitationStatus.pending.name)
+        .limit(2)
+        .get();
+    return _pendingInvitationFromSnapshot(snapshot, normalizedEmail, role);
+  }
+
+  Invitation? _pendingInvitationFromSnapshot(QuerySnapshot<Map<String, dynamic>> snapshot, String normalizedEmail, AccountRole role) {
+    final invitations = snapshot.docs
+        .map((document) => Invitation.fromMap({...document.data(), 'id': document.id}))
+        .where((invitation) => invitation.role == role && invitation.email.trim().toLowerCase() == normalizedEmail && invitation.isCurrentlyValid)
+        .toList();
+    if (invitations.length > 1) {
+      throw StateError('Multiple pending invitations were found for the same email.');
+    }
+    return invitations.isEmpty ? null : invitations.first;
   }
 
   Future<List<Invitation>> fetchInvitationsForOrganization(String organizationId, {AccountRole? role}) async {
