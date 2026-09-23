@@ -12,12 +12,13 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
   Future<void> _loadProfile() async {
     final doctorId = FirebaseAuthRepository.instance.session.doctorId;
-    if (doctorId == null || doctorId.isEmpty) {
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (doctorId == null || doctorId.isEmpty || organizationId == null || organizationId.isEmpty) {
       if (mounted) setState(() => _error = 'لا توجد جلسة طبيب نشطة.');
       return;
     }
     try {
-      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, doctorId);
       if (!mounted) return;
       if (doctor == null) {
         setState(() => _error = 'لم يتم العثور على ملف الطبيب.');
@@ -86,9 +87,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     final updated = await Navigator.of(context).push<DoctorProfile>(MaterialPageRoute(builder: (_) => DoctorEditProfileScreen(profile: _profile)));
     if (updated == null || !mounted) return;
     final doctorId = FirebaseAuthRepository.instance.session.doctorId;
-    if (doctorId == null || doctorId.isEmpty) return;
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (doctorId == null || doctorId.isEmpty || organizationId == null || organizationId.isEmpty) return;
     try {
-      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
+      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, doctorId);
       if (doctor == null) throw StateError('لم يتم العثور على ملف الطبيب.');
       await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
         id: doctor.id,

@@ -149,14 +149,18 @@ class FirebaseAuthRepository implements AuthRepository {
           );
           return AuthResult(success: true, message: 'تم تسجيل الدخول بنجاح.', session: _session);
         case AccountRole.doctor:
-          final doctorRecord = await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail);
+          final profile = await _firestoreUserProfileRepository.fetchUserProfile(userCredential.user!.uid);
+          final doctorRecord = profile?.doctorId != null && profile?.organizationId != null
+              ? await _firestoreDoctorRepository.fetchDoctorByIdForOrganization(profile!.organizationId!, profile.doctorId!)
+              : await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail);
           if (doctorRecord == null) {
             return const AuthResult(success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني.');
           }
           if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.user?.uid) {
             return const AuthResult(success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.');
           }
-          await _firestoreDoctorRepository.linkFirebaseUid(
+          await _firestoreDoctorRepository.linkFirebaseUidForOrganization(
+            organizationId: doctorRecord.organizationId,
             doctorId: doctorRecord.id,
             firebaseUid: userCredential.user!.uid,
             email: normalizedEmail,
@@ -237,7 +241,9 @@ class FirebaseAuthRepository implements AuthRepository {
       }
 
       if (role == AccountRole.doctor) {
-        final doctorRecord = await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail);
+        final doctorRecord = invitation.doctorId == null
+            ? await _firestoreDoctorRepository.fetchDoctorByEmail(normalizedEmail)
+            : await _firestoreDoctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!);
         if (doctorRecord == null) {
           return const AuthResult(success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني في العلاقة الموثوقة.');
         }
@@ -247,7 +253,7 @@ class FirebaseAuthRepository implements AuthRepository {
         if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.uid) {
           return const AuthResult(success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.');
         }
-        await _firestoreDoctorRepository.linkFirebaseUid(doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
+        await _firestoreDoctorRepository.linkFirebaseUidForOrganization(organizationId: invitation.organizationId, doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
         await _firestoreUserProfileRepository.linkDoctorProfile(uid: userCredential.uid, email: normalizedEmail, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
       } else {
         await _firestoreUserProfileRepository.createOrUpdateUserProfile(

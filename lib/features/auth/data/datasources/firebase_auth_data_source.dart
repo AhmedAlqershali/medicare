@@ -85,7 +85,11 @@ class FirebaseAuthDataSource {
         if (doctorId == null || doctorId.isEmpty) {
           throw StateError('ملف الطبيب لا يحتوي على معرف طبيب صالح.');
         }
-        final doctor = await _doctorRepository.fetchDoctorById(doctorId);
+        final organizationId = profile.organizationId;
+        if (organizationId == null || organizationId.isEmpty) {
+          throw StateError('ملف الطبيب لا يحتوي على معرف مؤسسة صالح.');
+        }
+        final doctor = await _doctorRepository.fetchDoctorByIdForOrganization(organizationId, doctorId);
         if (doctor == null || doctor.status != AccountStatus.active || doctor.firebaseUid != firebaseUser.uid) {
           throw StateError('تعذر التحقق من عضوية الطبيب لحساب Firebase الحالي.');
         }
@@ -282,6 +286,14 @@ class FirebaseAuthDataSource {
           _session = await _buildSession(userCredential.user!);
           return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.organization);
         case AccountRole.doctor:
+          if (profile?.role == AccountRole.doctor && profile?.doctorId != null && profile?.organizationId != null) {
+            final doctor = await _doctorRepository.fetchDoctorByIdForOrganization(profile!.organizationId!, profile.doctorId!);
+            if (doctor == null || doctor.status != AccountStatus.active || doctor.firebaseUid != userCredential.user!.uid) {
+              return (success: false, message: 'تعذر التحقق من سجل الطبيب المرتبط بهذا الحساب.', user: null, currentRole: null);
+            }
+            _session = await _buildSession(userCredential.user!);
+            return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: _authUserForDoctor(doctor, userCredential.user!.uid), currentRole: AccountRole.doctor);
+          }
           final doctorRecord = await _doctorRepository.fetchDoctorByEmail(normalizedEmail);
           if (doctorRecord == null) {
             return (success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني.', user: null, currentRole: null);
@@ -289,7 +301,8 @@ class FirebaseAuthDataSource {
           if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.user?.uid) {
             return (success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.', user: null, currentRole: null);
           }
-          await _doctorRepository.linkFirebaseUid(
+          await _doctorRepository.linkFirebaseUidForOrganization(
+            organizationId: doctorRecord.organizationId,
             doctorId: doctorRecord.id,
             firebaseUid: userCredential.user!.uid,
             email: normalizedEmail,
@@ -363,7 +376,9 @@ class FirebaseAuthDataSource {
       }
 
       if (role == AccountRole.doctor) {
-        final doctorRecord = await _doctorRepository.fetchDoctorByEmail(normalizedEmail);
+        final doctorRecord = invitation.doctorId == null
+          ? await _doctorRepository.fetchDoctorByEmail(normalizedEmail)
+          : await _doctorRepository.fetchDoctorByIdForOrganization(invitation.organizationId, invitation.doctorId!);
         if (doctorRecord == null) {
           return (success: false, message: 'لا يوجد سجل طبيب مطابق لهذا البريد الإلكتروني في العلاقة الموثوقة.', user: null, currentRole: null);
         }
@@ -376,7 +391,7 @@ class FirebaseAuthDataSource {
         if (doctorRecord.firebaseUid != null && doctorRecord.firebaseUid != userCredential.uid) {
           return (success: false, message: 'هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.', user: null, currentRole: null);
         }
-        await _doctorRepository.linkFirebaseUid(doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
+        await _doctorRepository.linkFirebaseUidForOrganization(organizationId: invitation.organizationId, doctorId: doctorRecord.id, firebaseUid: userCredential.uid, email: normalizedEmail);
         await _userProfileRepository.linkDoctorProfile(uid: userCredential.uid, email: normalizedEmail, doctorId: doctorRecord.id, organizationId: doctorRecord.organizationId);
       } else {
         await _userProfileRepository.createOrUpdateUserProfile(

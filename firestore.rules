@@ -57,9 +57,19 @@ service cloud.firestore {
 
     function isDoctorOfOrganization(orgId, doctorId) {
       return signedIn() &&
-        exists(/databases/$(database)/documents/doctors/$(doctorId)) &&
-        get(/databases/$(database)/documents/doctors/$(doctorId)).data.firebaseUid == request.auth.uid &&
-        get(/databases/$(database)/documents/doctors/$(doctorId)).data.organizationId == orgId;
+        exists(/databases/$(database)/documents/organizations/$(orgId)/doctors/$(doctorId)) &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/doctors/$(doctorId)).data.firebaseUid == request.auth.uid &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/doctors/$(doctorId)).data.organizationId == orgId;
+    }
+
+    function isPendingDoctorInvitation(orgId, doctorId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)) &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.get('recipientEmail', get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.email) == request.auth.token.email &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.role == 'doctor' &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.doctorId == doctorId &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.status == 'pending' &&
+        (get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.get('expiresAt', null) == null || get(/databases/$(database)/documents/organizations/$(orgId)/invitations/$(doctorId)).data.expiresAt > request.time);
     }
 
     function isDoctorPatientAccess(orgId, doctorId, patientId) {
@@ -86,10 +96,10 @@ service cloud.firestore {
           )) ||
           (request.resource.data.role == 'doctor' &&
            request.resource.data.doctorId is string &&
-           exists(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId)) &&
-           get(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId)).data.firebaseUid == uid &&
-           get(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId)).data.organizationId == request.resource.data.organizationId &&
-           get(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId)).data.email == request.resource.data.email) ||
+           exists(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/doctors/$(request.resource.data.doctorId)) &&
+           get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/doctors/$(request.resource.data.doctorId)).data.firebaseUid == uid &&
+           get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/doctors/$(request.resource.data.doctorId)).data.organizationId == request.resource.data.organizationId &&
+           get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/doctors/$(request.resource.data.doctorId)).data.email == request.resource.data.email) ||
           (request.resource.data.role == 'patient' &&
            request.resource.data.patientId is string &&
            exists(/databases/$(database)/documents/patients/$(request.resource.data.patientId)) &&
@@ -261,7 +271,7 @@ service cloud.firestore {
     }
 
     match /organizations/{organizationId}/doctors/{doctorId} {
-      allow read: if signedIn() && (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId) || isAdmin());
+      allow read: if signedIn() && (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId) || isPendingDoctorInvitation(organizationId, doctorId) || isAdmin());
 
       allow create: if signedIn() &&
         ownsOrganization(organizationId) &&
@@ -270,7 +280,10 @@ service cloud.firestore {
         request.resource.data.get('firebaseUid', null) == null;
 
       allow update: if signedIn() &&
-        (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId)) &&
+        (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId) ||
+         (isPendingDoctorInvitation(organizationId, doctorId) &&
+          request.resource.data.firebaseUid == request.auth.uid &&
+          request.resource.data.status == 'active')) &&
         request.resource.data.organizationId == organizationId &&
         request.resource.data.id == resource.data.id &&
         request.resource.data.email == resource.data.email;

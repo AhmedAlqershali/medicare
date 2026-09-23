@@ -14,16 +14,14 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
 
   Future<void> _loadSchedule() async {
     final doctorId = FirebaseAuthRepository.instance.session.doctorId;
-    if (doctorId == null || doctorId.isEmpty) {
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (doctorId == null || doctorId.isEmpty || organizationId == null || organizationId.isEmpty) {
       if (mounted) setState(() => _error = 'لا توجد جلسة طبيب نشطة.');
       return;
     }
     try {
-      final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(doctorId);
-      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-      final appointments = organizationId == null
-          ? const <Map<String, dynamic>>[]
-          : await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: doctorId);
+        final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, doctorId);
+        final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForDoctor(organizationId: organizationId, doctorId: doctorId);
       if (!mounted) return;
       setState(() {
         _availability = doctor?.availability ?? const {};

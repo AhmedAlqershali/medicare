@@ -156,6 +156,43 @@ class FirestoreDoctorRepository implements DoctorRepository {
     }
   }
 
+  Future<Doctor> linkFirebaseUidForOrganization({required String organizationId, required String doctorId, required String firebaseUid, required String email}) async {
+    final doctor = await fetchDoctorByIdForOrganization(organizationId, doctorId);
+    if (doctor == null) {
+      throw StateError('لم يتم العثور على سجل الطبيب المطلوب داخل المؤسسة.');
+    }
+    if (doctor.email.trim().toLowerCase() != email.trim().toLowerCase()) {
+      throw StateError('البريد الإلكتروني للطبيب غير مطابق للسجل الموجود.');
+    }
+    if (doctor.firebaseUid != null && doctor.firebaseUid != firebaseUid) {
+      throw StateError('هذا الطبيب مرتبط بالفعل بحساب Firebase مختلف ولا يمكن نقله.');
+    }
+    final updatedDoctor = Doctor(
+      id: doctor.id,
+      name: doctor.name,
+      email: doctor.email,
+      organizationId: doctor.organizationId,
+      specialty: doctor.specialty,
+      status: AccountStatus.active,
+      initials: doctor.initials,
+      firebaseUid: firebaseUid,
+      availability: doctor.availability,
+      clinic: doctor.clinic,
+      clinicId: doctor.clinicId,
+      phone: doctor.phone,
+      location: doctor.location,
+      rating: doctor.rating,
+      reviews: doctor.reviews,
+      experience: doctor.experience,
+      bio: doctor.bio,
+      services: doctor.services,
+      createdAt: doctor.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await saveDoctor(updatedDoctor);
+    return updatedDoctor;
+  }
+
   String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
     if (parts.isEmpty) return 'U';
