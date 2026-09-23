@@ -231,7 +231,7 @@ service cloud.firestore {
     }
 
     match /organizations/{organizationId}/clinics/{clinicId} {
-      allow read: if isAdmin() || (signedIn() && organizationUserForClinic(organizationId, clinicId));
+      allow read: if isAdmin() || (signedIn() && (isOrganizationMember(organizationId) || organizationUserForClinic(organizationId, clinicId)));
 
       allow create, update: if signedIn() &&
         (isAdmin() || (currentUserProfile() != null && organizationUserForClinic(organizationId, clinicId))) &&
@@ -243,6 +243,7 @@ service cloud.firestore {
     match /organizations/{organizationId}/appointments/{appointmentId} {
       allow read: if signedIn() && (
         ownsOrganization(organizationId) ||
+        isOrganizationMember(organizationId) ||
         (resource.data.doctorId != null && isDoctorOfOrganization(organizationId, resource.data.doctorId)) ||
         (resource.data.get('patientUid', null) == request.auth.uid && exists(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(resource.data.patientId)) && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(resource.data.patientId)).data.firebaseUid == request.auth.uid && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(resource.data.patientId)).data.organizationId == organizationId) ||
         isAdmin()
