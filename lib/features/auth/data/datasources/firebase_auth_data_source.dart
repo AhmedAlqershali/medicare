@@ -295,9 +295,6 @@ class FirebaseAuthDataSource {
             return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: _authUserForDoctor(doctor, userCredential.user!.uid), currentRole: AccountRole.doctor);
           }
           return (success: false, message: 'لا يوجد ملف مستخدم مرتبط بسجل طبيب.', user: null, currentRole: null);
-          final user = _authUserForDoctor(doctorRecord, userCredential.user!.uid);
-          _session = await _buildSession(userCredential.user!);
-          return (success: true, message: 'تم تسجيل الدخول بنجاح.', user: user, currentRole: AccountRole.doctor);
         case AccountRole.patient:
             final patientRecord = profile?.patientId != null && profile?.organizationId != null
               ? await _patientRepository.fetchPatientById(profile!.patientId!, organizationId: profile.organizationId)

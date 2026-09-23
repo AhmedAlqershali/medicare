@@ -12,6 +12,7 @@ class DoctorEntity {
     required this.bio,
     required this.services,
     required this.colorValue,
+    this.clinicId,
     this.availability = const {},
   });
 
@@ -27,5 +28,6 @@ class DoctorEntity {
   final String bio;
   final List<String> services;
   final int colorValue;
+  final String? clinicId;
   final Map<String, List<String>> availability;
 }

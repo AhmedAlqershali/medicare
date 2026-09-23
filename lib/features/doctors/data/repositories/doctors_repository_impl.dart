@@ -25,6 +25,7 @@ class DoctorsRepositoryImpl implements DoctorsRepository {
       bio: doctor.bio,
       services: doctor.services,
       colorValue: AppColors.sky.value,
+      clinicId: doctor.clinicId,
       availability: doctor.availability,
     )).toList();
   }

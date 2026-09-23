@@ -41,6 +41,7 @@ class _DoctorsListScreenState extends State<DoctorsListScreen> {
         bio: entity.bio,
         services: List<String>.from(entity.services),
         color: Color(entity.colorValue),
+        clinicId: entity.clinicId,
         availability: entity.availability,
       );
 
