@@ -186,7 +186,7 @@ service cloud.firestore {
     }
 
     match /organizations/{organizationId}/doctors/{doctorId} {
-      allow read: if signedIn() && (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId) || isPendingDoctorInvitation(organizationId, doctorId) || isAdmin());
+      allow read: if signedIn() && (ownsOrganization(organizationId) || isOrganizationMember(organizationId) || isDoctorOfOrganization(organizationId, doctorId) || isPendingDoctorInvitation(organizationId, doctorId) || isAdmin());
 
       allow create: if signedIn() &&
         ownsOrganization(organizationId) &&
@@ -209,6 +209,7 @@ service cloud.firestore {
     match /organizations/{organizationId}/patients/{patientId} {
       allow read: if signedIn() && (
         ownsOrganization(organizationId) ||
+        isOrganizationMember(organizationId) ||
         isDoctorPatientAccess(organizationId, resource.data.doctorId, patientId) ||
         resource.data.get('firebaseUid', null) == request.auth.uid ||
         isAdmin()
