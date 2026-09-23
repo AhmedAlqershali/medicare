@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../core/auth/services/firebase_auth_repository.dart';
-import '../../core/firestore/repositories/firestore_appointment_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import '../clinics/clinics_screens.dart';
 import '../clinics/data/repositories/clinics_repository_impl.dart';
 import '../clinics/models/clinic_model.dart';
 import '../doctors/doctors_screens.dart';
-import 'appointment_booking_screens.dart';
 import 'data/repositories/appointments_repository_impl.dart';
 import 'domain/entities/appointment_entity.dart';
-import 'models/appointment_booking_data.dart';
 import 'models/appointment_model.dart';
 import 'models/appointment_status.dart';
 

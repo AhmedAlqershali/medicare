@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../core/auth/services/firebase_auth_repository.dart';
-import '../../core/auth/models/account_role.dart';
-import '../../core/firestore/repositories/firestore_appointment_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
 import 'appointments_screens.dart';

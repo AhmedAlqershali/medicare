@@ -24,7 +24,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         setState(() => _error = 'لم يتم العثور على ملف الطبيب.');
         return;
       }
-      setState(() => _profile = DoctorProfile(name: doctor.name, specialty: doctor.specialty, clinic: '', email: doctor.email, phone: ''));
+      setState(() => _profile = DoctorProfile(name: doctor.name, specialty: doctor.specialty, clinic: doctor.clinic, email: doctor.email, phone: doctor.phone));
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     }
@@ -71,6 +71,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 const SizedBox(height: AppSpacing.lg),
                 const SectionHeader(title: 'الإعدادات'),
                 const SizedBox(height: AppSpacing.sm),
+                _SettingTile(icon: Icons.calendar_month_outlined, title: 'جدول الطبيب', onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DoctorScheduleScreen()))),
                 _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف الشخصي', onTap: _editProfile),
                 _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context, 'لا توجد إشعارات جديدة.')),
                 _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context, 'المظهر مضبوط على الوضع الفاتح')),
@@ -92,6 +93,9 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     try {
       final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, doctorId);
       if (doctor == null) throw StateError('لم يتم العثور على ملف الطبيب.');
+      if (updated.email.trim().toLowerCase() != doctor.email.trim().toLowerCase()) {
+        throw StateError('لا يمكن تغيير البريد الإلكتروني المرتبط بحساب الطبيب.');
+      }
       await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
         id: doctor.id,
         name: updated.name,
@@ -100,7 +104,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         specialty: updated.specialty,
         status: doctor.status,
         initials: doctor.initials,
-        clinic: doctor.clinic,
+        clinic: updated.clinic,
         clinicId: doctor.clinicId,
         phone: doctor.phone,
         location: doctor.location,

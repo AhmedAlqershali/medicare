@@ -1,5 +1,4 @@
 part of 'appointments_screens.dart';
-
 ({String label, Color color}) _statusDetails(AppointmentStatus status) {
   switch (status) {
     case AppointmentStatus.upcoming:
@@ -9,8 +8,8 @@ part of 'appointments_screens.dart';
     case AppointmentStatus.cancelled:
       return (label: 'ملغي', color: AppColors.warning);
   }
-}
 
+}
 class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   late AppointmentStatus _status = widget.appointment.status;
 
@@ -96,19 +95,12 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 AppCard(child: Text(appointment.notes!, style: Theme.of(context).textTheme.bodyLarge)),
               ],
-              if (_status == AppointmentStatus.upcoming) ...[
-                const SizedBox(height: AppSpacing.xl),
-                SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل الموعد', icon: Icons.edit_calendar_outlined, onPressed: null)),
-                const SizedBox(height: AppSpacing.sm),
-                SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _confirmCancellation, child: const Text('إلغاء الموعد'))),
-              ],
             ],
           ),
         ),
       ),
     );
   }
-
   void _openDoctor(AppointmentData appointment) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DoctorsListScreen()));
 
   void _openClinic(AppointmentData appointment) async {
@@ -139,8 +131,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       )).toList(),
     ))));
   }
-
-  void _confirmCancellation() {
-    showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(title: const Text('إلغاء الموعد'), content: const Text('هل تريد إلغاء هذا الموعد؟'), actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('العودة')), FilledButton(onPressed: () { Navigator.of(dialogContext).pop(); setState(() => _status = AppointmentStatus.cancelled); widget.onCancelled?.call(); }, child: const Text('إلغاء الموعد'))]));
-  }
 }
+
+const _patientAppointmentDetailsReadOnly = true;

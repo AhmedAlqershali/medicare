@@ -86,6 +86,15 @@ class FirestoreDoctorRepository implements DoctorRepository {
     await _service.doctorDocumentForOrganization(doctor.organizationId, doctor.id).set(doctor.toMap(), SetOptions(merge: true));
   }
 
+  Future<void> saveAvailability({required String organizationId, required String doctorId, required Map<String, List<String>> availability}) async {
+    final doctor = await fetchDoctorByIdForOrganization(organizationId, doctorId);
+    if (doctor == null) throw StateError('لم يتم العثور على ملف الطبيب.');
+    await _service.doctorDocumentForOrganization(organizationId, doctorId).update({
+      'availability': availability,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<Doctor> linkFirebaseUidForOrganization({required String organizationId, required String doctorId, required String firebaseUid, required String email}) async {
     final doctor = await fetchDoctorByIdForOrganization(organizationId, doctorId);
     if (doctor == null) {

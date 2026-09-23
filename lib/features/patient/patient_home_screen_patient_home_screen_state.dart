@@ -9,7 +9,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           child: IndexedStack(
             index: _selectedTab,
             children: [
-              _HomeContent(onBook: () {}),
+              _HomeContent(onBook: () => setState(() => _selectedTab = 1)),
               const AppointmentsScreen(),
               const DoctorsListScreen(),
               const PatientProfileScreen(),

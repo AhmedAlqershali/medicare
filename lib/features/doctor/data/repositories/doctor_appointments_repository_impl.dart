@@ -19,6 +19,11 @@ class DoctorAppointmentsRepositoryImpl implements DoctorAppointmentsRepository {
   }
 
   DoctorAppointment _fromMap(Map<String, dynamic> appointment) => DoctorAppointment(
+      id: appointment['id'] as String? ?? '',
+        organizationId: appointment['organizationId'] as String? ?? '',
+        doctorId: appointment['doctorId'] as String? ?? '',
+        patientId: appointment['patientId'] as String? ?? '',
+        clinicId: appointment['clinicId'] as String?,
         patientName: appointment['patientName'] as String? ?? '',
         patientInitials: appointment['patientInitials'] as String? ?? '',
         age: appointment['age'] as String? ?? '',
@@ -26,15 +31,28 @@ class DoctorAppointmentsRepositoryImpl implements DoctorAppointmentsRepository {
         date: appointment['date'] as String? ?? '',
         time: appointment['time'] as String? ?? '',
         type: appointment['type'] as String? ?? '',
-        status: _statusFromMap(appointment['status']),
+        status: _statusFromMap(appointment['status'], appointment['date']),
         notes: appointment['notes'] as String? ?? '',
         avatarColor: Colors.transparent,
       );
 
-  DoctorAppointmentFilter _statusFromMap(Object? value) => switch (value) {
-        'completed' => DoctorAppointmentFilter.completed,
-        'cancelled' => DoctorAppointmentFilter.cancelled,
-        'today' => DoctorAppointmentFilter.today,
-        _ => DoctorAppointmentFilter.upcoming,
+  DoctorAppointmentFilter _statusFromMap(Object? value, Object? date) {
+    if (value == 'completed') return DoctorAppointmentFilter.completed;
+    if (value == 'cancelled') return DoctorAppointmentFilter.cancelled;
+    final parsedDate = date is String ? DateTime.tryParse(date) : null;
+    if (value == 'today' || date == _todayLabel || (parsedDate != null && _sameDate(parsedDate, DateTime.now()))) return DoctorAppointmentFilter.today;
+    return DoctorAppointmentFilter.upcoming;
+  }
+
+  bool _sameDate(DateTime first, DateTime second) => first.year == second.year && first.month == second.month && first.day == second.day;
+
+  String get _todayLabel => switch (DateTime.now().weekday) {
+        DateTime.saturday => 'السبت',
+        DateTime.sunday => 'الأحد',
+        DateTime.monday => 'الاثنين',
+        DateTime.tuesday => 'الثلاثاء',
+        DateTime.wednesday => 'الأربعاء',
+        DateTime.thursday => 'الخميس',
+        _ => 'الجمعة',
       };
 }

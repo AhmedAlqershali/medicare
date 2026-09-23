@@ -58,7 +58,7 @@ class _HomeContentState extends State<_HomeContent> {
                 SectionHeader(title: 'موعدك القادم', actionLabel: 'عرض الكل', onAction: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppointmentsScreen()))),
                 const SizedBox(height: AppSpacing.sm),
                 if (_error != null) ErrorState(message: _error!, onRetry: _loadData)
-                else if (_appointments.isEmpty) const EmptyState(title: 'لا توجد مواعيد', message: 'ستظهر مواعيدك هنا بعد حجز موعد.')
+                else if (_appointments.isEmpty) const EmptyState(title: 'لا توجد مواعيد', message: 'ستظهر مواعيدك هنا بعد أن يحدد الطبيب موعد الزيارة.')
                 else PatientAppointmentCard(appointment: _appointments.first, onView: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppointmentsScreen()))),
                 const SizedBox(height: AppSpacing.xl),
                 Text('كيف نساعدك اليوم؟', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 17)),

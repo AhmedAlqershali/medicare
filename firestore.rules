@@ -262,17 +262,24 @@ service cloud.firestore {
         request.resource.data.clinicId is string &&
         request.resource.data.doctorId is string &&
         request.resource.data.patientId is string &&
-        request.resource.data.patientUid is string &&
+        (request.resource.data.get('patientUid', null) == null || request.resource.data.patientUid is string) &&
         (
         ownsOrganization(organizationId) ||
-        (isDoctorOfOrganization(organizationId, request.resource.data.doctorId) && exists(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)) && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)).data.doctorId == request.resource.data.doctorId)
+        (isDoctorOfOrganization(organizationId, request.resource.data.doctorId) && exists(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)) && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)).data.doctorId == request.resource.data.doctorId && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)).data.organizationId == organizationId && get(/databases/$(database)/documents/organizations/$(organizationId)/patients/$(request.resource.data.patientId)).data.get('clinicId', null) == request.resource.data.clinicId && exists(/databases/$(database)/documents/organizations/$(organizationId)/clinics/$(request.resource.data.clinicId)) && get(/databases/$(database)/documents/organizations/$(organizationId)/clinics/$(request.resource.data.clinicId)).data.organizationId == organizationId)
       );
 
       allow update: if signedIn() && (
         ownsOrganization(organizationId) ||
-        (isDoctorOfOrganization(organizationId, resource.data.doctorId) && request.resource.data.doctorId == resource.data.doctorId) ||
-        (resource.data.get('patientUid', null) == request.auth.uid && request.resource.data.get('patientUid', null) == resource.data.get('patientUid', null))
-      ) && request.resource.data.organizationId == organizationId;
+        (isDoctorOfOrganization(organizationId, resource.data.doctorId) &&
+         request.resource.data.doctorId == resource.data.doctorId &&
+         request.resource.data.patientId == resource.data.patientId &&
+         request.resource.data.get('patientUid', null) == resource.data.get('patientUid', null) &&
+         request.resource.data.clinicId == resource.data.clinicId)
+      ) &&
+      request.resource.data.organizationId == organizationId &&
+      request.resource.data.patientId == resource.data.patientId &&
+      request.resource.data.doctorId == resource.data.doctorId &&
+      request.resource.data.clinicId == resource.data.clinicId;
 
       allow delete: if signedIn() && (ownsOrganization(organizationId) || isAdmin());
     }

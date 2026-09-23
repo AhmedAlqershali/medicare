@@ -71,30 +71,6 @@ class ClinicDetailsScreen extends StatelessWidget {
                   ]),
                 ),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              SizedBox(
-                width: double.infinity,
-                child: PrimaryButton(
-                  label: 'حجز موعد',
-                  icon: Icons.calendar_month_outlined,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => AppointmentBookingScreen(
-                        bookingData: AppointmentBookingData(
-                          doctorId: clinic.doctors.first.id,
-                          clinicId: clinic.id,
-                          doctorName: clinic.doctors.first.name,
-                          doctorInitials: clinic.doctors.first.initials,
-                          specialty: clinic.doctors.first.specialty,
-                          clinicName: clinic.name,
-                          location: clinic.location,
-                          avatarColor: clinic.doctors.first.color,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ]),
           ),
         ),

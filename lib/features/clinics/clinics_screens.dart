@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/medicare_widgets.dart';
-import '../appointments/appointment_booking_screens.dart';
-import '../appointments/models/appointment_booking_data.dart';
 import '../doctors/doctors_screens.dart';
 import 'data/repositories/clinics_repository_impl.dart';
 import 'domain/entities/clinic_entity.dart';

@@ -49,17 +49,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         AppointmentEntityStatus.cancelled => AppointmentStatus.cancelled,
       };
 
-  AppointmentBookingData _bookingData(AppointmentData appointment) => AppointmentBookingData(
-      doctorId: appointment.doctorId,
-      clinicId: appointment.clinicId,
-        doctorName: appointment.doctorName,
-        doctorInitials: appointment.doctorInitials,
-        specialty: appointment.specialty,
-        clinicName: appointment.clinicName,
-        location: appointment.location,
-        avatarColor: appointment.avatarColor,
-      );
-
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('مواعيدي'), leading: const BackButton()),
@@ -76,7 +65,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 ])),
               ),
               if (_visibleAppointments.isEmpty)
-                SliverFillRemaining(hasScrollBody: false, child: _EmptyAppointments(status: _selectedStatus, onBook: _openDoctors))
+                SliverFillRemaining(hasScrollBody: false, child: _EmptyAppointments(status: _selectedStatus))
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
@@ -87,7 +76,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       child: AppointmentCard(
                         appointment: appointment,
                         onDetails: () => _openDetails(appointment),
-                        onRebook: appointment.status == AppointmentStatus.completed ? () => _rebook(appointment) : null,
+                        onRebook: null,
                       ),
                     );
                   }, childCount: _visibleAppointments.length)),
@@ -98,31 +87,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       );
 
   void _openDetails(AppointmentData appointment) {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentDetailsScreen(appointment: appointment, onCancelled: () => _cancelAppointment(appointment))));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentDetailsScreen(appointment: appointment)));
   }
 
-  Future<void> _cancelAppointment(AppointmentData appointment) async {
-    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null || appointment.id.isEmpty) return;
-    try {
-      await FirestoreAppointmentRepository.instance.saveAppointment(
-        organizationId: organizationId,
-        appointment: {'id': appointment.id, 'status': AppointmentStatus.cancelled.name},
-      );
-    } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
-      return;
-    }
-    if (!mounted) return;
-    setState(() {
-      final index = _appointments.indexOf(appointment);
-      if (index != -1) _appointments[index] = appointment.copyWith(status: AppointmentStatus.cancelled);
-    });
-  }
-
-  void _rebook(AppointmentData appointment) {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AppointmentBookingScreen(bookingData: _bookingData(appointment))));
-  }
-
-  void _openDoctors() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DoctorsListScreen()));
 }

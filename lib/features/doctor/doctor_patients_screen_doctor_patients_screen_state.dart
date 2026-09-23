@@ -23,8 +23,18 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
     }
     if (!mounted) return;
     setState(() {
-      _patients = patients.map((patient) => DoctorPatient(name: patient.name, initials: patient.initials, age: '', gender: '', lastAppointment: '', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: Colors.transparent, notes: '')).toList();
+      _patients = patients.map((patient) => DoctorPatient(id: patient.id, organizationId: patient.organizationId, doctorId: patient.doctorId, clinicId: patient.clinicId, firebaseUid: patient.firebaseUid, name: patient.name, initials: patient.initials, age: _ageFromBirthDate(patient.birthDate), gender: patient.gender ?? '', birthDate: patient.birthDate ?? '', email: patient.email, phone: patient.phone ?? '', lastAppointment: '', status: patient.accountActivated ? 'نشط' : 'قيد التفعيل', avatarColor: Colors.transparent, notes: '')).toList();
     });
+  }
+
+  String _ageFromBirthDate(String? birthDate) {
+    if (birthDate == null || birthDate.trim().isEmpty) return '';
+    final parsed = DateTime.tryParse(birthDate);
+    if (parsed == null) return '';
+    final today = DateTime.now();
+    var age = today.year - parsed.year;
+    if (today.month < parsed.month || (today.month == parsed.month && today.day < parsed.day)) age--;
+    return age >= 0 ? '$age سنة' : '';
   }
 
   @override
@@ -82,11 +92,10 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: _PatientCard(
                     patient: patient,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => DoctorPatientDetailsScreen(patient: patient),
-                      ),
-                    ),
+                    onTap: () async {
+                      await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => DoctorPatientDetailsScreen(patient: patient)));
+                      if (mounted) await _loadPatients();
+                    },
                   ),
                 );
               },
@@ -108,5 +117,8 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
     );
   }
 
-  void _openAddPatient() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AddPatientScreen()));
+  Future<void> _openAddPatient() async {
+    await Navigator.of(context).push<void>(MaterialPageRoute<void>(builder: (_) => const AddPatientScreen()));
+    if (mounted) await _loadPatients();
+  }
 }

@@ -14,7 +14,7 @@ class _QuickActions extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          _QuickAction(label: 'حجز موعد', icon: Icons.add_circle_outline, color: AppColors.mint, onTap: onBook),
+          _QuickAction(label: 'مواعيدي', icon: Icons.event_available_outlined, color: AppColors.mint, onTap: onBook),
           _QuickAction(label: 'الأطباء', icon: Icons.medical_services_outlined, color: AppColors.sky, onTap: _noop),
           _QuickAction(label: 'مواعيدي', icon: Icons.event_available_outlined, color: AppColors.peach, onTap: _noop),
           _QuickAction(label: 'العيادات', icon: Icons.local_hospital_outlined, color: const Color(0xFFEDEAF7), onTap: onClinics),
