@@ -11,6 +11,8 @@ class Doctor {
     required this.initials,
     this.availability = const {},
     this.clinic = '',
+    this.clinicId,
+    this.phone = '',
     this.location = '',
     this.rating = 0,
     this.reviews = 0,
@@ -31,6 +33,8 @@ class Doctor {
   final String initials;
   final Map<String, List<String>> availability;
   final String clinic;
+  final String? clinicId;
+  final String phone;
   final String location;
   final double rating;
   final int reviews;
@@ -52,6 +56,8 @@ class Doctor {
       'initials': initials,
       'availability': availability,
       'clinic': clinic,
+      'clinicId': clinicId,
+      'phone': phone,
       'location': location,
       'rating': rating,
       'reviews': reviews,
@@ -71,13 +77,12 @@ class Doctor {
         email: map['email'] as String? ?? '',
         organizationId: map['organizationId'] as String? ?? '',
         specialty: map['specialty'] as String? ?? '',
-        status: AccountStatus.values.firstWhere(
-          (item) => item.name == (map['status'] as String? ?? AccountStatus.active.name),
-          orElse: () => AccountStatus.active,
-        ),
+        status: _status(map['status']),
         initials: map['initials'] as String? ?? '',
         availability: _availability(map['availability']),
         clinic: map['clinic'] as String? ?? '',
+        clinicId: map['clinicId'] as String?,
+        phone: map['phone'] as String? ?? '',
         location: map['location'] as String? ?? '',
         rating: (map['rating'] as num?)?.toDouble() ?? 0,
         reviews: (map['reviews'] as num?)?.toInt() ?? 0,
@@ -88,6 +93,16 @@ class Doctor {
         createdAt: map['createdAt'] is String ? DateTime.tryParse(map['createdAt'] as String) : null,
         updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt'] as String) : null,
       );
+
+  static AccountStatus _status(Object? value) {
+    final normalized = value?.toString().trim().toLowerCase();
+    return switch (normalized) {
+      'active' || 'نشط' => AccountStatus.active,
+      'inactive' || 'غير متاح' => AccountStatus.inactive,
+      'pending' || 'قيد الانتظار' => AccountStatus.pending,
+      _ => AccountStatus.active,
+    };
+  }
 
   static Map<String, List<String>> _availability(Object? value) {
     if (value is! Map) return const {};

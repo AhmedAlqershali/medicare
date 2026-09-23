@@ -2,6 +2,8 @@ part of 'organization_profile_screens.dart';
 
 class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   var _profile = const OrganizationProfile(name: '', email: '', phone: '', location: '', clinicsCount: 0);
+  bool _loading = true;
+  bool _saving = false;
   String? _error;
 
   @override
@@ -13,25 +15,40 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   Future<void> _loadProfile() async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) {
-      if (mounted) setState(() => _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.');
+      if (mounted) setState(() {
+        _loading = false;
+        _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.';
+      });
       return;
     }
     try {
       final organization = await FirestoreOrganizationRepository.instance.fetchOrganizationById(organizationId);
       if (!mounted) return;
       if (organization == null) {
-        setState(() => _error = 'لم يتم العثور على ملف المؤسسة.');
+        setState(() {
+          _loading = false;
+          _error = 'لم يتم العثور على ملف المؤسسة.';
+        });
         return;
       }
       final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
-      setState(() => _profile = OrganizationProfile(name: organization.name, email: organization.email, phone: organization.phone, location: organization.location, clinicsCount: clinics.length));
+      setState(() {
+        _loading = false;
+        _profile = OrganizationProfile(name: organization.name, email: organization.email, phone: organization.phone, location: organization.location, clinicsCount: clinics.length);
+      });
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: SafeArea(child: LoadingState()));
+    if (_error != null) return Scaffold(body: SafeArea(child: ErrorState(message: _error!, onRetry: _loadProfile)));
+    return Scaffold(
         appBar: AppBar(title: const Text('الملف الشخصي')),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -47,7 +64,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
                     const SizedBox(height: 4),
                     Text('إدارة الشبكة الطبية', style: Theme.of(context).textTheme.bodyMedium),
                   ])),
-                  IconButton(onPressed: _editProfile, icon: const Icon(Icons.edit_outlined), tooltip: 'تعديل الملف'),
+                  IconButton(onPressed: _saving ? null : _editProfile, icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.edit_outlined), tooltip: 'تعديل الملف'),
                 ]),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -60,7 +77,9 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
               const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'الإعدادات'),
               const SizedBox(height: AppSpacing.sm),
-              _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف', onTap: _editProfile),
+              _SettingTile(icon: Icons.edit_outlined, title: 'تعديل الملف', onTap: () {
+                if (!_saving) _editProfile();
+              }),
               _SettingTile(icon: Icons.notifications_none_rounded, title: 'الإشعارات', onTap: () => _showMessage(context: context, message: 'لا توجد إشعارات جديدة.')),
               _SettingTile(icon: Icons.brightness_6_outlined, title: 'المظهر', onTap: () => _showMessage(context: context, message: 'تم ضبط المظهر على الوضع الفاتح')),
               _SettingTile(icon: Icons.support_agent_outlined, title: 'المساعدة', onTap: () => _showMessage(context: context, message: 'سيتم التواصل معك في أقرب وقت')),
@@ -69,13 +88,19 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             ]),
           ),
         ),
-      );
+        );
+      }
 
   Future<void> _editProfile() async {
+    if (_saving) return;
     final updated = await Navigator.of(context).push<OrganizationProfile>(MaterialPageRoute(builder: (_) => OrganizationProfileFormScreen(profile: _profile)));
     if (updated == null || !mounted) return;
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
       final organization = await FirestoreOrganizationRepository.instance.fetchOrganizationById(organizationId);
       if (organization == null) throw StateError('لم يتم العثور على ملف المؤسسة.');
@@ -90,9 +115,21 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
         createdAt: organization.createdAt,
         updatedAt: DateTime.now(),
       ));
-      if (mounted) setState(() => _profile = updated);
+      if (mounted) {
+        setState(() {
+          _profile = updated;
+          _saving = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ بيانات المؤسسة بنجاح.')));
+      }
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = error.toString();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
     }
   }
 

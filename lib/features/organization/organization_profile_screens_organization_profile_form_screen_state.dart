@@ -35,7 +35,7 @@ class _OrganizationProfileFormScreenState extends State<OrganizationProfileFormS
             child: Column(children: [
               CustomTextField(label: 'اسم المؤسسة', prefixIcon: Icons.business_outlined, controller: _nameController),
               const SizedBox(height: AppSpacing.md),
-              CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress),
+              CustomTextField(label: 'البريد الإلكتروني', prefixIcon: Icons.email_outlined, controller: _emailController, readOnly: true, keyboardType: TextInputType.emailAddress),
               const SizedBox(height: AppSpacing.md),
               CustomTextField(label: 'رقم الهاتف', prefixIcon: Icons.phone_outlined, controller: _phoneController, keyboardType: TextInputType.phone),
               const SizedBox(height: AppSpacing.md),

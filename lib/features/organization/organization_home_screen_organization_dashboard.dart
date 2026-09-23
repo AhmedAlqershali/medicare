@@ -13,6 +13,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
   List<OrganizationDoctor> _doctors = const [];
   int _patientsCount = 0;
   int _appointmentsCount = 0;
+  bool _loading = true;
   String? _error;
   String _organizationName = '';
 
@@ -23,9 +24,16 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
   }
 
   Future<void> _loadDashboardData() async {
+    if (mounted) setState(() {
+      _loading = true;
+      _error = null;
+    });
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) {
-      if (mounted) setState(() => _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.');
+      if (mounted) setState(() {
+        _loading = false;
+        _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.';
+      });
       return;
     }
     try {
@@ -43,6 +51,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
       if (organization == null) throw StateError('لم يتم العثور على document المؤسسة في Firestore.');
       if (!mounted) return;
       setState(() {
+        _loading = false;
         _clinics = clinics;
         _doctors = doctors;
         _patientsCount = patients.length;
@@ -50,12 +59,18 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
         _organizationName = organization.name;
       });
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
     }
   }
 
   @override
-  Widget build(BuildContext context) => CustomScrollView(
+  Widget build(BuildContext context) {
+    if (_loading) return const LoadingState();
+    if (_error != null) return ErrorState(message: _error!, onRetry: _loadDashboardData);
+    return CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverPadding(
@@ -70,10 +85,6 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
                   Text(_organizationName, style: TextStyle(color: AppColors.muted, fontSize: 13, height: 1.45)),
                 ])),
               ]),
-              if (_error != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                ErrorState(message: _error!, onRetry: _loadDashboardData),
-              ],
               const SizedBox(height: AppSpacing.xl),
               Text('ملخص الإدارة', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
@@ -82,7 +93,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
               SectionHeader(title: 'العيادات', actionLabel: 'عرض جميع العيادات', onAction: () => widget.onTabSelected(1)),
               const SizedBox(height: AppSpacing.sm),
               for (final clinic in _clinics.take(2)) ...[
-                _ClinicPreviewCard(clinic: clinic, onTap: () => widget.onTabSelected(1)),
+                _ClinicPreviewCard(clinic: clinic, doctors: _doctorsForClinic(clinic), onTap: () => widget.onTabSelected(1)),
                 const SizedBox(height: AppSpacing.sm),
               ],
               const SizedBox(height: AppSpacing.xl),
@@ -96,6 +107,9 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
           ),
         ],
       );
+  }
+
+  List<OrganizationDoctor> _doctorsForClinic(OrganizationClinic clinic) => _doctors.where((doctor) => doctor.clinicId == clinic.id || (doctor.clinicId == null && (doctor.clinic == clinic.id || doctor.clinic == clinic.name))).toList();
 
   String get _initials {
     final parts = _organizationName.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();

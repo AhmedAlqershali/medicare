@@ -49,7 +49,37 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
               const SizedBox(height: AppSpacing.xl),
               SizedBox(width: double.infinity, child: PrimaryButton(label: 'تعديل بيانات الطبيب', icon: Icons.edit_outlined, onPressed: () async {
                 final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<OrganizationDoctor>(builder: (_) => OrganizationDoctorFormScreen(doctor: _doctor)));
-                if (updated != null && mounted) setState(() => _doctor = updated);
+                if (updated == null || !mounted) return;
+                try {
+                  final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(updated.id);
+                  final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+                  if (doctor == null || organizationId == null || organizationId != doctor.organizationId) throw StateError('تعذر التحقق من مؤسسة الطبيب قبل الحفظ.');
+                  await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
+                    id: doctor.id,
+                    name: updated.name,
+                    email: updated.email,
+                    organizationId: doctor.organizationId,
+                    specialty: updated.specialty,
+                    status: _accountStatus(updated.status),
+                    initials: updated.initials,
+                    availability: doctor.availability,
+                    clinic: updated.clinic,
+                    clinicId: updated.clinicId,
+                    phone: updated.phone,
+                    location: doctor.location,
+                    rating: doctor.rating,
+                    reviews: doctor.reviews,
+                    experience: doctor.experience,
+                    bio: doctor.bio,
+                    services: doctor.services,
+                    firebaseUid: doctor.firebaseUid,
+                    createdAt: doctor.createdAt,
+                    updatedAt: DateTime.now(),
+                  ));
+                  if (mounted) setState(() => _doctor = updated);
+                } catch (error) {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+                }
               })),
               const SizedBox(height: AppSpacing.sm),
               SizedBox(width: double.infinity, child: OutlinedButton.icon(onPressed: _toggleStatus, icon: const Icon(Icons.swap_horiz_rounded), label: const Text('تغيير الحالة'))),
@@ -59,6 +89,12 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
           ),
         ),
       );
+
+  AccountStatus _accountStatus(String status) => switch (status) {
+        'نشط' || 'active' => AccountStatus.active,
+        'غير متاح' || 'inactive' => AccountStatus.inactive,
+        _ => AccountStatus.pending,
+      };
 
   void _toggleStatus() {
     setState(() {

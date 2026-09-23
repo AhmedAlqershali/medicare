@@ -8,6 +8,8 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   String _selectedClinic = 'الكل';
   String _query = '';
   List<OrganizationDoctor> _doctors = const [];
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -16,16 +18,28 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   }
 
   Future<void> _loadDoctors() async {
-    final doctors = await const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors();
-    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    final clinics = organizationId == null || organizationId.isEmpty ? const <Map<String, dynamic>>[] : await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
-    if (!mounted) return;
     setState(() {
-      _doctors = doctors;
-      _specialties = ['الكل', ...doctors.map((doctor) => doctor.specialty).where((specialty) => specialty.trim().isNotEmpty).toSet()];
-      _clinics = ['الكل', ...clinics.map((clinic) => clinic['name'] as String? ?? '').where((clinic) => clinic.trim().isNotEmpty).toSet()];
-      if (!_clinics.contains(_selectedClinic)) _selectedClinic = 'الكل';
+      _loading = true;
+      _error = null;
     });
+    try {
+      final doctors = await const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors();
+      final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+      final clinics = organizationId == null || organizationId.isEmpty ? const <Map<String, dynamic>>[] : await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _doctors = doctors;
+        _specialties = ['الكل', ...doctors.map((doctor) => doctor.specialty).where((specialty) => specialty.trim().isNotEmpty).toSet()];
+        _clinics = ['الكل', ...clinics.map((clinic) => clinic['name'] as String? ?? '').where((clinic) => clinic.trim().isNotEmpty).toSet()];
+        if (!_clinics.contains(_selectedClinic)) _selectedClinic = 'الكل';
+      });
+    } catch (error) {
+      if (mounted) setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    }
   }
 
   List<OrganizationDoctor> get _filteredDoctors => _doctors.where((doctor) {
@@ -43,7 +57,10 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: SafeArea(child: LoadingState()));
+    if (_error != null) return Scaffold(body: SafeArea(child: ErrorState(message: _error!, onRetry: _loadDoctors)));
+    return Scaffold(
         appBar: AppBar(title: const Text('الأطباء'), actions: [IconButton(onPressed: _openAddDoctor, icon: const Icon(Icons.person_add_alt_1_outlined), tooltip: 'إضافة طبيب')]),
         body: SafeArea(
           child: CustomScrollView(
@@ -118,7 +135,8 @@ class _OrganizationDoctorsScreenState extends State<OrganizationDoctorsScreen> {
             ],
           ),
         ),
-      );
+        );
+      }
 
   Future<void> _openDetails(OrganizationDoctor doctor) async {
     final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<OrganizationDoctor>(builder: (_) => OrganizationDoctorDetailsScreen(doctor: doctor)));

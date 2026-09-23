@@ -20,15 +20,22 @@ class FirestoreDoctorRepository implements DoctorRepository {
   Future<List<Doctor>> doctorsForOrganization(String organizationId) => fetchDoctorsForOrganization(organizationId);
 
   Future<List<Doctor>> fetchDoctorsForOrganization(String organizationId) async {
-    final snapshot = await _service.firestore.collection(FirestorePaths.doctors).where('organizationId', isEqualTo: organizationId).get();
-    return snapshot.docs.map((document) => Doctor.fromMap(document.data(), document.id)).toList();
+    final nestedSnapshot = await _service.doctorCollectionForOrganization(organizationId).get();
+    final legacySnapshot = await _service.doctorCollection().where('organizationId', isEqualTo: organizationId).get();
+    final doctors = <String, Doctor>{
+      for (final document in nestedSnapshot.docs) document.id: Doctor.fromMap(document.data(), document.id),
+    };
+    for (final document in legacySnapshot.docs) {
+      doctors[document.id] = Doctor.fromMap(document.data(), document.id);
+    }
+    return doctors.values.toList();
   }
 
   @override
   Future<Doctor?> doctorForId(String doctorId) => fetchDoctorById(doctorId);
 
   @override
-  Future<Doctor> inviteDoctor({required String organizationId, required String name, required String email, required String specialty, required String invitedBy}) async {
+  Future<Doctor> inviteDoctor({required String organizationId, required String name, required String email, required String specialty, required String invitedBy, String? clinicId, String? clinicName}) async {
     final now = DateTime.now();
     final trimmedEmail = email.trim().toLowerCase();
     final doctor = Doctor(
@@ -37,6 +44,9 @@ class FirestoreDoctorRepository implements DoctorRepository {
       email: trimmedEmail,
       organizationId: organizationId,
       specialty: specialty.trim(),
+      clinic: clinicName?.trim() ?? '',
+      clinicId: clinicId,
+      phone: '',
       status: AccountStatus.pending,
       initials: _initials(name),
       firebaseUid: null,
@@ -52,9 +62,10 @@ class FirestoreDoctorRepository implements DoctorRepository {
       organizationId: organizationId,
       status: InvitationStatus.pending,
       doctorId: doctor.id,
+      clinicId: clinicId,
     );
     await _service.firestore.runTransaction((transaction) async {
-      transaction.set(_service.doctorDocument(doctor.id), doctor.toMap());
+      transaction.set(_service.doctorDocumentForOrganization(organizationId, doctor.id), doctor.toMap());
       transaction.set(_service.invitationDocument(organizationId, invitation.id), invitation.toMap());
     });
     return doctor;
@@ -63,32 +74,39 @@ class FirestoreDoctorRepository implements DoctorRepository {
   String doctorIdFor(String organizationId, String email) => '${organizationId}_${email.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}';
 
   Future<Doctor?> fetchDoctorById(String doctorId) async {
-    final snapshot = await _service.doctorDocument(doctorId).get();
-    if (!snapshot.exists || snapshot.data() == null) return null;
-    return Doctor.fromMap(snapshot.data()!, snapshot.id);
+    final legacy = await _service.doctorDocument(doctorId).get();
+    if (legacy.exists && legacy.data() != null) return Doctor.fromMap(legacy.data()!, legacy.id);
+    final snapshot = await _service.firestore.collectionGroup(FirestorePaths.doctors).where('id', isEqualTo: doctorId).limit(2).get();
+    if (snapshot.docs.isEmpty) return null;
+    if (snapshot.docs.length > 1) throw StateError('تم العثور على أكثر من سجل طبيب بالمعرف نفسه.');
+    return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
   }
 
   Future<Doctor?> fetchDoctorByUid(String firebaseUid) async {
-    final snapshot = await _service.firestore.collection(FirestorePaths.doctors).where('firebaseUid', isEqualTo: firebaseUid).limit(2).get();
-    if (snapshot.docs.isEmpty) return null;
-    if (snapshot.docs.length > 1) {
-      throw StateError('تم العثور على أكثر من سجل طبيب مرتبط بنفس Firebase UID.');
-    }
-    return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
+    final snapshot = await _service.doctorCollection().where('firebaseUid', isEqualTo: firebaseUid).limit(2).get();
+    if (snapshot.docs.length > 1) throw StateError('تم العثور على أكثر من سجل طبيب مرتبط بنفس Firebase UID.');
+    if (snapshot.docs.isNotEmpty) return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
+    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.doctors).where('firebaseUid', isEqualTo: firebaseUid).limit(2).get();
+    if (nestedSnapshot.docs.isEmpty) return null;
+    if (nestedSnapshot.docs.length > 1) throw StateError('تم العثور على أكثر من سجل طبيب مرتبط بنفس Firebase UID.');
+    return Doctor.fromMap(nestedSnapshot.docs.first.data(), nestedSnapshot.docs.first.id);
   }
 
   Future<Doctor?> fetchDoctorByEmail(String email) async {
     final normalizedEmail = email.trim().toLowerCase();
-    final snapshot = await _service.firestore.collection(FirestorePaths.doctors).where('email', isEqualTo: normalizedEmail).limit(2).get();
-    if (snapshot.docs.isEmpty) return null;
+    final snapshot = await _service.doctorCollection().where('email', isEqualTo: normalizedEmail).limit(2).get();
     if (snapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من سجل طبيب بنفس البريد الإلكتروني.');
     }
-    return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
+    if (snapshot.docs.isNotEmpty) return Doctor.fromMap(snapshot.docs.first.data(), snapshot.docs.first.id);
+    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.doctors).where('email', isEqualTo: normalizedEmail).limit(2).get();
+    if (nestedSnapshot.docs.isEmpty) return null;
+    if (nestedSnapshot.docs.length > 1) throw StateError('تم العثور على أكثر من سجل طبيب بنفس البريد الإلكتروني.');
+    return Doctor.fromMap(nestedSnapshot.docs.first.data(), nestedSnapshot.docs.first.id);
   }
 
   Future<void> saveDoctor(Doctor doctor) async {
-    await _service.doctorDocument(doctor.id).set(doctor.toMap(), SetOptions(merge: true));
+    await _service.doctorDocumentForOrganization(doctor.organizationId, doctor.id).set(doctor.toMap(), SetOptions(merge: true));
   }
 
   Future<void> linkFirebaseUid({required String doctorId, required String firebaseUid, required String email}) async {
@@ -114,6 +132,8 @@ class FirestoreDoctorRepository implements DoctorRepository {
       firebaseUid: firebaseUid,
       availability: doctor.availability,
       clinic: doctor.clinic,
+      clinicId: doctor.clinicId,
+      phone: doctor.phone,
       location: doctor.location,
       rating: doctor.rating,
       reviews: doctor.reviews,
@@ -124,6 +144,10 @@ class FirestoreDoctorRepository implements DoctorRepository {
       updatedAt: DateTime.now(),
     );
     await saveDoctor(updatedDoctor);
+    final legacySnapshot = await _service.doctorDocument(updatedDoctor.id).get();
+    if (legacySnapshot.exists) {
+      await _service.doctorDocument(updatedDoctor.id).set(updatedDoctor.toMap(), SetOptions(merge: true));
+    }
   }
 
   String _initials(String name) {

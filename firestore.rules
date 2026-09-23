@@ -266,12 +266,14 @@ service cloud.firestore {
       allow create: if signedIn() &&
         ownsOrganization(organizationId) &&
         request.resource.data.organizationId == organizationId &&
-        request.resource.data.uid == request.auth.uid;
+        request.resource.data.id == doctorId &&
+        request.resource.data.get('firebaseUid', null) == null;
 
       allow update: if signedIn() &&
         (ownsOrganization(organizationId) || isDoctorOfOrganization(organizationId, doctorId)) &&
         request.resource.data.organizationId == organizationId &&
-        request.resource.data.uid == resource.data.uid;
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.email == resource.data.email;
 
       allow delete: if signedIn() && ownsOrganization(organizationId);
     }

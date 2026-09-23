@@ -2,6 +2,38 @@ part of 'organization_clinics_screen.dart';
 
 class _OrganizationClinicDetailsScreenState extends State<OrganizationClinicDetailsScreen> {
   late OrganizationClinic _clinic = widget.clinic;
+  bool _loadingAppointments = true;
+  int _appointmentsCount = 0;
+  String? _appointmentsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final organizationId = FirebaseAuthRepository.instance.session.organizationId;
+    if (organizationId == null || organizationId.isEmpty) {
+      if (mounted) setState(() {
+        _loadingAppointments = false;
+        _appointmentsError = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.';
+      });
+      return;
+    }
+    try {
+      final appointments = await FirestoreAppointmentRepository.instance.fetchAppointmentsForOrganization(organizationId);
+      if (mounted) setState(() {
+        _loadingAppointments = false;
+        _appointmentsCount = appointments.where((appointment) => appointment['clinicId'] == _clinic.id || appointment['clinicName'] == _clinic.name).length;
+      });
+    } catch (error) {
+      if (mounted) setState(() {
+        _loadingAppointments = false;
+        _appointmentsError = error.toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -51,8 +83,12 @@ class _OrganizationClinicDetailsScreenState extends State<OrganizationClinicDeta
               Row(children: [
                 Expanded(child: _MiniStat(label: 'المرضى', value: '${_clinic.patientsCount}', icon: Icons.people_outline)),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(child: _MiniStat(label: 'مواعيد اليوم', value: '', icon: Icons.calendar_month_outlined)),
+                Expanded(child: _MiniStat(label: 'المواعيد', value: _loadingAppointments ? '...' : _appointmentsError == null ? '$_appointmentsCount' : 'خطأ', icon: Icons.calendar_month_outlined)),
               ]),
+              if (_appointmentsError != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(_appointmentsError!, style: const TextStyle(color: Color(0xFFC84C4C), fontWeight: FontWeight.w700)),
+              ],
               const SizedBox(height: AppSpacing.xl),
               const SectionHeader(title: 'الأقسام'),
               const SizedBox(height: AppSpacing.sm),

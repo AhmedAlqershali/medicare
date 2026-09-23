@@ -4,6 +4,8 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   late List<OrganizationClinic> _clinics = const [];
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -12,11 +14,23 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   }
 
   Future<void> _loadClinics() async {
-    final clinics = await const OrganizationClinicsRepositoryImpl().getOrganizationClinics();
-    if (!mounted) return;
     setState(() {
-      _clinics = clinics;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final clinics = await const OrganizationClinicsRepositoryImpl().getOrganizationClinics();
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _clinics = clinics;
+      });
+    } catch (error) {
+      if (mounted) setState(() {
+        _loading = false;
+        _error = error.toString();
+      });
+    }
   }
 
   List<OrganizationClinic> get _filteredClinics => _clinics.where((clinic) {
@@ -31,7 +45,10 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    if (_loading) return const Scaffold(body: SafeArea(child: LoadingState()));
+    if (_error != null) return Scaffold(body: SafeArea(child: ErrorState(message: _error!, onRetry: _loadClinics)));
+    return Scaffold(
         appBar: AppBar(
           title: const Text('العيادات'),
           actions: [IconButton(onPressed: _openAddClinic, icon: const Icon(Icons.add_rounded), tooltip: 'إضافة عيادة')],
@@ -76,7 +93,8 @@ class _OrganizationClinicsScreenState extends State<OrganizationClinicsScreen> {
             ],
           ),
         ),
-      );
+        );
+      }
 
   Future<void> _openClinicDetails(OrganizationClinic clinic) async {
     final updated = await Navigator.of(context).push<OrganizationClinic>(MaterialPageRoute<OrganizationClinic>(builder: (_) => OrganizationClinicDetailsScreen(clinic: clinic)));

@@ -24,14 +24,22 @@ class FirestorePatientRepository implements PatientRepository {
   Future<List<Patient>> fetchPatientsForDoctor(String doctorId) async {
     final doctor = await _doctorRepository.doctorForId(doctorId);
     if (doctor == null || doctor.organizationId.isEmpty) return [];
-    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).where('organizationId', isEqualTo: doctor.organizationId).get();
-    return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
+    final snapshot = await _service.patientCollectionForDoctor(doctor.organizationId, doctorId).get();
+    final legacySnapshot = await _service.firestore.collection(FirestorePaths.patients).where('doctorId', isEqualTo: doctorId).where('organizationId', isEqualTo: doctor.organizationId).get();
+    return _uniquePatients([
+      ...snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
+      ...legacySnapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
+    ]);
   }
 
   Future<List<Patient>> fetchPatientsForOrganization(String organizationId) async {
     if (organizationId.trim().isEmpty) throw StateError('Organization id is required to read patients.');
-    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
-    return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
+    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
+    final legacySnapshot = await _service.firestore.collection(FirestorePaths.patients).where('organizationId', isEqualTo: organizationId).get();
+    return _uniquePatients([
+      ...nestedSnapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
+      ...legacySnapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})),
+    ]);
   }
 
   @override
@@ -58,13 +66,15 @@ class FirestorePatientRepository implements PatientRepository {
       createdAt: now,
       updatedAt: now,
     );
-    await _service.patientDocument(patient.id).set(patient.toMap());
+    await _service.patientDocumentForDoctor(patient.organizationId, patient.doctorId, patient.id).set(patient.toMap());
     return patient;
   }
 
   String patientIdFor(String doctorId, String email) => '${doctorId}_${email.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}';
 
   Future<Patient?> fetchPatientById(String patientId) async {
+    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.patients).where('id', isEqualTo: patientId).limit(2).get();
+    if (nestedSnapshot.docs.isNotEmpty) return Patient.fromMap({...nestedSnapshot.docs.first.data(), 'id': nestedSnapshot.docs.first.id});
     final snapshot = await _service.patientDocument(patientId).get();
     if (!snapshot.exists || snapshot.data() == null) return null;
     return Patient.fromMap({...snapshot.data()!, 'id': snapshot.id});
@@ -72,21 +82,26 @@ class FirestorePatientRepository implements PatientRepository {
 
   Future<Patient?> fetchPatientByEmail(String email) async {
     final normalizedEmail = email.trim().toLowerCase();
-    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('email', isEqualTo: normalizedEmail).limit(2).get();
-    if (snapshot.docs.isEmpty) return null;
-    if (snapshot.docs.length > 1) {
+    final nestedSnapshot = await _service.firestore.collectionGroup(FirestorePaths.patients).where('email', isEqualTo: normalizedEmail).limit(2).get();
+    if (nestedSnapshot.docs.length == 1) return Patient.fromMap({...nestedSnapshot.docs.first.data(), 'id': nestedSnapshot.docs.first.id});
+    if (nestedSnapshot.docs.length > 1) {
       throw StateError('تم العثور على أكثر من سجل مريض بنفس البريد الإلكتروني. يتطلب ذلك تصحيحاً إدارياً.');
     }
+    final snapshot = await _service.firestore.collection(FirestorePaths.patients).where('email', isEqualTo: normalizedEmail).limit(2).get();
+    if (snapshot.docs.isEmpty) return null;
+    if (snapshot.docs.length > 1) throw StateError('تم العثور على أكثر من سجل مريض بنفس البريد الإلكتروني. يتطلب ذلك تصحيحاً إدارياً.');
     return Patient.fromMap({...snapshot.docs.first.data(), 'id': snapshot.docs.first.id});
   }
 
   Future<void> savePatient(Patient patient) async {
-    await _service.patientDocument(patient.id).set(patient.toMap(), SetOptions(merge: true));
+    await _service.patientDocumentForDoctor(patient.organizationId, patient.doctorId, patient.id).set(patient.toMap(), SetOptions(merge: true));
   }
 
   Future<void> updatePatientProfile({required String patientId, required String name, required String phone, required String birthDate, required String gender}) async {
     if (patientId.trim().isEmpty) throw StateError('Patient id is required before saving the profile.');
-    await _service.patientDocument(patientId).set({
+    final patient = await fetchPatientById(patientId);
+    if (patient == null) throw StateError('لم يتم العثور على سجل المريض المطلوب.');
+    await _service.patientDocumentForDoctor(patient.organizationId, patient.doctorId, patient.id).set({
       'name': name.trim(),
       'phone': phone.trim(),
       'birthDate': birthDate.trim(),
@@ -123,7 +138,20 @@ class FirestorePatientRepository implements PatientRepository {
       createdAt: patient.createdAt ?? now,
       updatedAt: now,
     );
-    await _service.patientDocument(patientId).set(updatedPatient.toMap(), SetOptions(merge: true));
+    await _service.patientDocumentForDoctor(updatedPatient.organizationId, updatedPatient.doctorId, updatedPatient.id).set(updatedPatient.toMap(), SetOptions(merge: true));
+  }
+
+  List<Patient> _uniquePatients(Iterable<Patient> patients) {
+    final unique = <String, Patient>{};
+    for (final patient in patients) {
+      final key = patient.firebaseUid?.trim().isNotEmpty == true
+          ? 'uid:${patient.firebaseUid}'
+          : patient.email.trim().isNotEmpty
+              ? 'email:${patient.organizationId}:${patient.email.trim().toLowerCase()}'
+              : 'id:${patient.id}';
+      unique[key] = patient;
+    }
+    return unique.values.toList();
   }
 
   String _initials(String name) {
