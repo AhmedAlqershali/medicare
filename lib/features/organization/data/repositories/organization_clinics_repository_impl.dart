@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/auth/models/doctor.dart';
+import '../../../../core/auth/models/patient.dart';
 import '../../../../core/auth/services/firebase_auth_repository.dart';
 import '../../../../core/firestore/repositories/firestore_clinic_repository.dart';
 import '../../../../core/firestore/repositories/firestore_doctor_repository.dart';
@@ -16,8 +17,14 @@ class OrganizationClinicsRepositoryImpl implements OrganizationClinicsRepository
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
-    final doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
-    final patients = await FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId);
+    var doctors = const <Doctor>[];
+    var patients = const <Patient>[];
+    try {
+      doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
+    } catch (_) {}
+    try {
+      patients = await FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId);
+    } catch (_) {}
     return clinics.map((clinic) => OrganizationClinic(
       id: clinic['id'] as String? ?? '',
       name: clinic['name'] as String? ?? '',
