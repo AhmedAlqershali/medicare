@@ -37,18 +37,25 @@ class Organization {
     return map;
   }
 
-    static Organization fromMap(Map<String, dynamic> map, String documentId) => Organization(
-      id: documentId,
+  static Organization fromMap(Map<String, dynamic> map, String documentId) => Organization(
+        id: documentId,
         name: map['name'] as String? ?? '',
         email: map['email'] as String? ?? '',
         phone: map['phone'] as String? ?? '',
         location: map['location'] as String? ?? '',
-        status: AccountStatus.values.firstWhere(
-          (item) => item.name == (map['status'] as String? ?? AccountStatus.active.name),
-          orElse: () => AccountStatus.active,
-        ),
+        status: _status(map['status']),
         firebaseUid: map['firebaseUid'] as String?,
         createdAt: map['createdAt'] is String ? DateTime.tryParse(map['createdAt'] as String) : null,
         updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt'] as String) : null,
       );
+
+  static AccountStatus _status(Object? value) {
+    final normalized = value?.toString().trim().toLowerCase();
+    return switch (normalized) {
+      'active' || 'نشط' => AccountStatus.active,
+      'inactive' || 'غير متاح' => AccountStatus.inactive,
+      'pending' || 'قيد الانتظار' => AccountStatus.pending,
+      _ => AccountStatus.active,
+    };
+  }
 }

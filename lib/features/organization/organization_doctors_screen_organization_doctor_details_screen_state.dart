@@ -51,9 +51,10 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
                 final updated = await Navigator.of(context).push<OrganizationDoctor>(MaterialPageRoute<OrganizationDoctor>(builder: (_) => OrganizationDoctorFormScreen(doctor: _doctor)));
                 if (updated == null || !mounted) return;
                 try {
-                  final doctor = await FirestoreDoctorRepository.instance.fetchDoctorById(updated.id);
                   final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-                  if (doctor == null || organizationId == null || organizationId != doctor.organizationId) throw StateError('تعذر التحقق من مؤسسة الطبيب قبل الحفظ.');
+                  if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بالجلسة الحالية.');
+                  final doctor = await FirestoreDoctorRepository.instance.fetchDoctorByIdForOrganization(organizationId, updated.id);
+                  if (doctor == null) throw StateError('تعذر العثور على الطبيب داخل المؤسسة الحالية.');
                   await FirestoreDoctorRepository.instance.saveDoctor(Doctor(
                     id: doctor.id,
                     name: updated.name,
@@ -76,7 +77,7 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
                     createdAt: doctor.createdAt,
                     updatedAt: DateTime.now(),
                   ));
-                  if (mounted) setState(() => _doctor = updated);
+                  if (mounted) setState(() => _doctor = updated.copyWith(availability: doctor.availability));
                 } catch (error) {
                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
                 }
@@ -104,6 +105,26 @@ class _OrganizationDoctorDetailsScreenState extends State<OrganizationDoctorDeta
   }
 
   void _showSchedule() {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('الجدول: ${_doctor.scheduleSummary}')));
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('جدول الطبيب'),
+        content: _doctor.availability.isEmpty
+            ? const Text('لا يوجد جدول متاح لهذا الطبيب.')
+            : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: _doctor.availability.entries
+                      .map((entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                            child: Text('${entry.key}: ${entry.value.join('، ')}'),
+                          ))
+                      .toList(),
+                ),
+              ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('إغلاق'))],
+      ),
+    );
   }
 }

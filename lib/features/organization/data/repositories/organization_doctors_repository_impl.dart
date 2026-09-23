@@ -26,6 +26,7 @@ class OrganizationDoctorsRepositoryImpl implements OrganizationDoctorsRepository
       status: _statusLabel(doctor.status),
       avatarColor: Colors.transparent,
       scheduleSummary: doctor.availability.isEmpty ? '' : '${doctor.availability.length} أيام متاحة',
+      availability: doctor.availability,
     )).toList();
   }
 

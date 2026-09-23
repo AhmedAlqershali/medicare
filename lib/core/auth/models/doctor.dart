@@ -71,8 +71,8 @@ class Doctor {
     return map;
   }
 
-    static Doctor fromMap(Map<String, dynamic> map, [String? documentId]) => Doctor(
-      id: documentId ?? map['id'] as String? ?? '',
+  static Doctor fromMap(Map<String, dynamic> map, [String? documentId]) => Doctor(
+        id: documentId ?? map['id'] as String? ?? '',
         name: map['name'] as String? ?? '',
         email: map['email'] as String? ?? '',
         organizationId: map['organizationId'] as String? ?? '',

@@ -21,14 +21,17 @@ class FirestoreDoctorRepository implements DoctorRepository {
 
   Future<List<Doctor>> fetchDoctorsForOrganization(String organizationId) async {
     final nestedSnapshot = await _service.doctorCollectionForOrganization(organizationId).get();
-    final legacySnapshot = await _service.doctorCollection().where('organizationId', isEqualTo: organizationId).get();
-    final doctors = <String, Doctor>{
-      for (final document in nestedSnapshot.docs) document.id: Doctor.fromMap(document.data(), document.id),
-    };
-    for (final document in legacySnapshot.docs) {
-      doctors[document.id] = Doctor.fromMap(document.data(), document.id);
+    return nestedSnapshot.docs.map((document) => Doctor.fromMap(document.data(), document.id)).toList();
+  }
+
+  Future<Doctor?> fetchDoctorByIdForOrganization(String organizationId, String doctorId) async {
+    final snapshot = await _service.doctorDocumentForOrganization(organizationId, doctorId).get();
+    if (!snapshot.exists || snapshot.data() == null) return null;
+    final doctor = Doctor.fromMap(snapshot.data()!, snapshot.id);
+    if (doctor.organizationId.isNotEmpty && doctor.organizationId != organizationId) {
+      throw StateError('This doctor belongs to a different organization and cannot be read here.');
     }
-    return doctors.values.toList();
+    return doctor;
   }
 
   @override

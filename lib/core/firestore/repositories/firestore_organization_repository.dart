@@ -55,7 +55,12 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
     if (organization.id.trim().isEmpty) {
       throw StateError('Organization id is required before saving to Firestore.');
     }
-    await _service.organizationDocument(organization.id).set(organization.toMap(), SetOptions(merge: true));
+    await _service.organizationDocument(organization.id).set({
+      'name': organization.name.trim(),
+      'phone': organization.phone.trim(),
+      'location': organization.location.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<Organization> createOrganization({
