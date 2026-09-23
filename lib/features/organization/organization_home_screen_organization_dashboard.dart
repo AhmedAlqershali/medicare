@@ -40,17 +40,17 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
     try {
       final sectionErrors = <String>[];
       final results = await Future.wait([
-        _loadSection('العيادات', const OrganizationClinicsRepositoryImpl().getOrganizationClinics(), const <OrganizationClinic>[], sectionErrors),
+        _loadSection('العيادات', const OrganizationClinicsRepositoryImpl().getOrganizationClinics(includeRelatedData: false), const <OrganizationClinic>[], sectionErrors),
         _loadSection('الأطباء', const OrganizationDoctorsRepositoryImpl().getOrganizationDoctors(), const <OrganizationDoctor>[], sectionErrors),
         _loadSection('المرضى', FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId), const [], sectionErrors),
         _loadSection('المواعيد', FirestoreAppointmentRepository.instance.fetchAppointmentsForOrganization(organizationId), const [], sectionErrors),
+        _loadSection<Organization?>('المؤسسة', FirestoreOrganizationRepository.instance.currentOrganization(organizationId: organizationId), null, sectionErrors),
       ]);
       final clinics = results[0] as List<OrganizationClinic>;
       final doctors = results[1] as List<OrganizationDoctor>;
       final patients = results[2] as List;
       final appointments = results[3] as List;
-      final organization = await FirestoreOrganizationRepository.instance.currentOrganization();
-      if (organization == null) throw StateError('لم يتم العثور على document المؤسسة في Firestore.');
+      final organization = results[4] as Organization?;
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -59,7 +59,7 @@ class _OrganizationDashboardState extends State<_OrganizationDashboard> {
         _doctors = doctors;
         _patientsCount = patients.length;
         _appointmentsCount = appointments.length;
-        _organizationName = organization.name;
+        _organizationName = organization?.name ?? '';
       });
     } catch (error) {
       if (mounted) setState(() {

@@ -26,7 +26,7 @@ class FirestoreClinicRepository {
     final snapshot = await _service.clinicCollection(organizationId).get();
     return snapshot.docs
         .map((document) => {...document.data(), 'id': document.id})
-        .where((clinic) => clinic['organizationId'] == null || clinic['organizationId'] == organizationId)
+        .where((clinic) => clinic['organizationId'] == organizationId)
         .toList();
   }
 

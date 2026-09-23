@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/models/organization.dart';
 import '../../core/auth/services/firebase_auth_repository.dart';
 import '../../core/firestore/repositories/firestore_appointment_repository.dart';
 import '../../core/firestore/repositories/firestore_patient_repository.dart';

@@ -115,9 +115,17 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
         createdAt: organization.createdAt,
         updatedAt: DateTime.now(),
       ));
+      final savedOrganization = await FirestoreOrganizationRepository.instance.fetchOrganizationById(organizationId);
+      if (savedOrganization == null) throw StateError('تعذر إعادة قراءة بيانات المؤسسة بعد الحفظ.');
       if (mounted) {
         setState(() {
-          _profile = updated;
+          _profile = OrganizationProfile(
+            name: savedOrganization.name,
+            email: savedOrganization.email,
+            phone: savedOrganization.phone,
+            location: savedOrganization.location,
+            clinicsCount: _profile.clinicsCount,
+          );
           _saving = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ بيانات المؤسسة بنجاح.')));

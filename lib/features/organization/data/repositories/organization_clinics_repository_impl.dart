@@ -13,25 +13,19 @@ class OrganizationClinicsRepositoryImpl implements OrganizationClinicsRepository
   const OrganizationClinicsRepositoryImpl();
 
   @override
-  Future<List<OrganizationClinic>> getOrganizationClinics() async {
+  Future<List<OrganizationClinic>> getOrganizationClinics({bool includeRelatedData = true}) async {
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
     if (organizationId == null || organizationId.isEmpty) throw StateError('لا توجد مؤسسة مرتبطة بجلسة المستخدم.');
     final clinics = await FirestoreClinicRepository.instance.fetchClinicsForOrganization(organizationId);
-    var doctors = const <Doctor>[];
-    var patients = const <Patient>[];
-    try {
-      doctors = await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId);
-    } catch (_) {}
-    try {
-      patients = await FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId);
-    } catch (_) {}
+    final doctors = includeRelatedData ? await FirestoreDoctorRepository.instance.fetchDoctorsForOrganization(organizationId) : const <Doctor>[];
+    final patients = includeRelatedData ? await FirestorePatientRepository.instance.fetchPatientsForOrganization(organizationId) : const <Patient>[];
     return clinics.map((clinic) => OrganizationClinic(
       id: clinic['id'] as String? ?? '',
       name: clinic['name'] as String? ?? '',
       location: clinic['location'] as String? ?? '',
       phone: clinic['phone'] as String? ?? '',
       description: clinic['description'] as String? ?? '',
-      status: clinic['status'] as String? ?? '',
+      status: _statusLabel(clinic['status']),
       doctorsCount: _doctorsForClinic(doctors, clinic).length,
       departmentsCount: _strings(clinic['departments'] ?? clinic['specialties']).length,
       patientsCount: patients.where((patient) => _doctorsForClinic(doctors, clinic).any((doctor) => doctor.id == patient.doctorId)).length,
@@ -42,6 +36,13 @@ class OrganizationClinicsRepositoryImpl implements OrganizationClinicsRepository
   }
 
   List<String> _strings(Object? value) => value is List ? value.map((item) => item.toString()).toList() : const [];
+
+  String _statusLabel(Object? value) => switch (value?.toString().trim().toLowerCase()) {
+        'active' || 'نشط' || 'نشطة' => 'نشطة',
+        'inactive' || 'غير متاح' || 'غير متاحة' => 'غير متاحة',
+        'pending' || 'قيد الانتظار' => 'قيد الانتظار',
+        _ => value?.toString() ?? '',
+      };
 
   List<Doctor> _doctorsForClinic(List<Doctor> doctors, Map<String, dynamic> clinic) {
     final clinicId = clinic['id'] as String? ?? '';

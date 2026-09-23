@@ -51,7 +51,8 @@ class AddDoctorScreenState extends State<AddDoctorScreen> {
       return;
     }
     final organizationId = FirebaseAuthRepository.instance.session.organizationId;
-    if (organizationId == null) {
+    final invitedBy = FirebaseAuth.instance.currentUser?.uid;
+    if (organizationId == null || organizationId.isEmpty || invitedBy == null || invitedBy.isEmpty) {
       setState(() => _error = 'لا توجد مؤسسة نشطة مرتبطة بالجلسة الحالية.');
       return;
     }
@@ -61,7 +62,7 @@ class AddDoctorScreenState extends State<AddDoctorScreen> {
     });
     try {
       final clinic = _clinics.firstWhere((item) => item['id'] == _selectedClinicId);
-      await FirestoreDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: FirebaseAuth.instance.currentUser?.uid ?? '', clinicId: _selectedClinicId, clinicName: clinic['name'] as String?);
+      await FirestoreDoctorRepository.instance.inviteDoctor(organizationId: organizationId, name: _nameController.text.trim(), email: email, specialty: _specialtyController.text.trim(), invitedBy: invitedBy, clinicId: _selectedClinicId, clinicName: clinic['name'] as String?);
       if (mounted) setState(() => _success = true);
     } on StateError catch (error) {
       if (mounted) setState(() => _error = error.message);

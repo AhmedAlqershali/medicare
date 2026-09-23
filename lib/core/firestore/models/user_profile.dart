@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../auth/models/account_role.dart';
 
 class UserProfile {
@@ -49,8 +51,14 @@ class UserProfile {
         clinicId: map['clinicId'] as String?,
         doctorId: map['doctorId'] as String?,
         patientId: map['patientId'] as String?,
-        createdAt: map['createdAt'] is String ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
-        updatedAt: map['updatedAt'] is String ? DateTime.parse(map['updatedAt'] as String) : DateTime.now(),
+        createdAt: _dateFromMap(map['createdAt']) ?? DateTime.now(),
+        updatedAt: _dateFromMap(map['updatedAt']) ?? DateTime.now(),
       );
   }
+
+  static DateTime? _dateFromMap(Object? value) => switch (value) {
+        String value => DateTime.tryParse(value),
+        Timestamp value => value.toDate(),
+        _ => null,
+      };
 }

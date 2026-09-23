@@ -15,7 +15,11 @@ class FirestoreOrganizationRepository implements OrganizationRepository {
   final FirestoreService _service;
 
   @override
-  Future<Organization?> currentOrganization() async {
+  Future<Organization?> currentOrganization({String? organizationId}) async {
+    final normalizedOrganizationId = organizationId?.trim();
+    if (normalizedOrganizationId != null && normalizedOrganizationId.isNotEmpty) {
+      return fetchOrganizationById(normalizedOrganizationId);
+    }
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null || uid.isEmpty) return null;
     return fetchOrganizationByUid(uid);

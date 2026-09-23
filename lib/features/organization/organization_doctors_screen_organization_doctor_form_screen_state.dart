@@ -41,11 +41,16 @@ class _OrganizationDoctorFormScreenState extends State<OrganizationDoctorFormScr
   }
 
   void _save() {
+    final selectedClinic = _clinics.where((clinic) => clinic['id'] == _selectedClinicId).firstOrNull;
+    if (selectedClinic == null) {
+      setState(() => _clinicError = 'اختر عيادة موجودة ضمن المؤسسة الحالية.');
+      return;
+    }
     final updated = widget.doctor.copyWith(
       name: 'د. ${_nameController.text.trim()}',
       specialty: _specialtyController.text.trim(),
-      clinic: _clinics.where((clinic) => clinic['id'] == _selectedClinicId).map((clinic) => clinic['name'] as String?).firstOrNull ?? widget.doctor.clinic,
-      clinicId: _selectedClinicId,
+      clinic: selectedClinic['name'] as String? ?? '',
+      clinicId: selectedClinic['id'] as String,
       phone: _phoneController.text.trim(),
       email: _emailController.text.trim(),
     );

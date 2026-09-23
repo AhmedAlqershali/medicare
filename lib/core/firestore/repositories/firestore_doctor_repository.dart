@@ -21,7 +21,10 @@ class FirestoreDoctorRepository implements DoctorRepository {
 
   Future<List<Doctor>> fetchDoctorsForOrganization(String organizationId) async {
     final nestedSnapshot = await _service.doctorCollectionForOrganization(organizationId).get();
-    return nestedSnapshot.docs.map((document) => Doctor.fromMap(document.data(), document.id)).toList();
+    return nestedSnapshot.docs
+        .map((document) => Doctor.fromMap(document.data(), document.id))
+        .where((doctor) => doctor.organizationId == organizationId)
+        .toList();
   }
 
   Future<Doctor?> fetchDoctorByIdForOrganization(String organizationId, String doctorId) async {
