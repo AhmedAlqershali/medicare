@@ -37,7 +37,6 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                     selected: index == _selectedDate,
                     onTap: () => setState(() {
                       _selectedDate = index;
-                      _validationMessage = null;
                     }),
                   ),
                 ),
@@ -56,7 +55,6 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                       unavailable: false,
                       onTap: () => setState(() {
                         _selectedTime = time;
-                        _validationMessage = null;
                       }),
                     ),
                 ],

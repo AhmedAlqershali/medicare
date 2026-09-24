@@ -27,7 +27,10 @@ class FirestorePatientRepository implements PatientRepository {
   Future<List<Patient>> fetchPatientsForDoctor(String doctorId, {String? organizationId}) async {
     final doctor = await _doctorRepository.doctorForId(doctorId, organizationId: organizationId);
     if (doctor == null || doctor.organizationId.isEmpty) return [];
-    final snapshot = await _service.patientCollectionForOrganization(doctor.organizationId).where('doctorId', isEqualTo: doctorId).get();
+    final snapshot = await _service.patientCollectionForOrganization(doctor.organizationId)
+        .where('organizationId', isEqualTo: doctor.organizationId)
+        .where('doctorId', isEqualTo: doctor.id)
+        .get();
     return snapshot.docs.map((document) => Patient.fromMap({...document.data(), 'id': document.id})).toList();
   }
 
@@ -53,6 +56,13 @@ class FirestorePatientRepository implements PatientRepository {
     final trimmedEmail = email.trim().toLowerCase();
     if (doctor == null || doctor.organizationId.isEmpty) {
       throw StateError('لم يتم العثور على مؤسسة الطبيب قبل إنشاء سجل المريض.');
+    }
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null || currentUid.isEmpty || doctor.firebaseUid != currentUid) {
+      throw StateError('حساب الطبيب الحالي غير مرتبط بسجل الطبيب المطلوب.');
+    }
+    if (organizationId != null && organizationId.trim().isNotEmpty && doctor.organizationId != organizationId.trim()) {
+      throw StateError('لا يمكن إنشاء المريض خارج مؤسسة الطبيب الحالية.');
     }
     final now = DateTime.now();
     final patient = Patient(
