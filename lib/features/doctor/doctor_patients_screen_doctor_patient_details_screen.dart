@@ -268,7 +268,6 @@ class _DoctorPatientDetailsScreenState extends State<DoctorPatientDetailsScreen>
                   const EmptyState(title: 'لا توجد مواعيد سابقة', message: 'ستظهر المواعيد هنا بعد تسجيلها.', icon: Icons.event_busy_outlined)
                 else
                   AppCard(child: _HistoryRow(date: _patient.lastAppointment, title: 'موعد سابق', status: 'مكتمل')),
-                ),
                 const SizedBox(height: AppSpacing.xl),
                 const SectionHeader(title: 'الملاحظات'),
                 const SizedBox(height: AppSpacing.sm),

@@ -1,9 +1,5 @@
 part of 'doctor_appointments_screen.dart';
 
-import '../../core/auth/services/firebase_auth_repository.dart';
-import '../../core/firestore/repositories/firestore_appointment_repository.dart';
-import '../../core/firestore/repositories/firestore_doctor_repository.dart';
-
 class _DoctorAppointmentDetailsScreenState extends State<DoctorAppointmentDetailsScreen> {
   late DoctorAppointmentFilter _status = widget.appointment.status;
   late String _date = widget.appointment.date;

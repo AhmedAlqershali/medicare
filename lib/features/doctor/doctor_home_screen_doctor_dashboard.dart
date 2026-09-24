@@ -1,7 +1,7 @@
 part of 'doctor_home_screen.dart';
 
 class _DoctorDashboard extends StatefulWidget {
-  const _DoctorDashboard({required this.onTabSelected});
+  const _DoctorDashboard({super.key, required this.onTabSelected});
   final ValueChanged<int> onTabSelected;
 
   @override
